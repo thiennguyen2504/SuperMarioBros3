@@ -10,6 +10,7 @@
 #include "Coin.h"
 #include "Platform.h"
 #include "Pipe.h"
+#include "Bush.h"
 
 #include "SampleKeyEventHandler.h"
 
@@ -21,7 +22,6 @@ CPlayScene::CPlayScene(int id, LPCWSTR filePath):
 	player = NULL;
 	key_handler = new CSampleKeyHandler(this);
 }
-
 
 #define SCENE_SECTION_UNKNOWN -1
 #define SCENE_SECTION_ASSETS	1
@@ -73,12 +73,10 @@ void CPlayScene::_ParseSection_ANIMATIONS(string line)
 
 	if (tokens.size() < 3) return; // skip invalid lines - an animation must at least has 1 frame and 1 frame time
 
-	//DebugOut(L"--> %s\n",ToWSTR(line).c_str());
-
 	LPANIMATION ani = new CAnimation();
 
 	int ani_id = atoi(tokens[0].c_str());
-	for (int i = 1; i < tokens.size(); i += 2)	// why i+=2 ?  sprite_id | frame_time  
+	for (int i = 1; i < tokens.size(); i += 2)
 	{
 		int sprite_id = atoi(tokens[i].c_str());
 		int frame_time = atoi(tokens[i+1].c_str());
@@ -88,14 +86,10 @@ void CPlayScene::_ParseSection_ANIMATIONS(string line)
 	CAnimations::GetInstance()->Add(ani_id, ani);
 }
 
-/*
-	Parse a line in section [OBJECTS] 
-*/
 void CPlayScene::_ParseSection_OBJECTS(string line)
 {
 	vector<string> tokens = split(line);
 
-	// skip invalid lines - an object set must have at least id, x, y
 	if (tokens.size() < 2) return;
 
 	int object_type = atoi(tokens[0].c_str());
@@ -120,10 +114,10 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 	case OBJECT_TYPE_GOOMBA: obj = new CGoomba(x,y); break;
 	case OBJECT_TYPE_BRICK: obj = new CBrick(x,y); break;
 	case OBJECT_TYPE_COIN: obj = new CCoin(x, y); break;
+	case OBJECT_TYPE_BUSH: obj = new CBush(x, y); break;
 
 	case OBJECT_TYPE_PLATFORM:
 	{
-
 		float cell_width = (float)atof(tokens[3].c_str());
 		float cell_height = (float)atof(tokens[4].c_str());
 		int length = atoi(tokens[5].c_str());
@@ -136,7 +130,6 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 			cell_width, cell_height, length,
 			sprite_begin, sprite_middle, sprite_end
 		);
-
 		break;
 	}
 
@@ -150,7 +143,6 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 	}
 	case OBJECT_TYPE_PIPE:
 	{
-
 		int height = atoi(tokens[3].c_str());
 		int sprite_id_head = atoi(tokens[4].c_str());
 		int sprite_id_body = atoi(tokens[5].c_str());
@@ -163,10 +155,7 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		return;
 	}
 
-	// General object setup
 	obj->SetPosition(x, y);
-
-
 	objects.push_back(obj);
 }
 
@@ -184,15 +173,12 @@ void CPlayScene::LoadAssets(LPCWSTR assetFile)
 	{
 		string line(str);
 
-		if (line[0] == '#') continue;	// skip comment lines	
+		if (line[0] == '#') continue;	
 
 		if (line == "[SPRITES]") { section = ASSETS_SECTION_SPRITES; continue; };
 		if (line == "[ANIMATIONS]") { section = ASSETS_SECTION_ANIMATIONS; continue; };
 		if (line[0] == '[') { section = SCENE_SECTION_UNKNOWN; continue; }
 
-		//
-		// data section
-		//
 		switch (section)
 		{
 		case ASSETS_SECTION_SPRITES: _ParseSection_SPRITES(line); break;
@@ -212,7 +198,6 @@ void CPlayScene::Load()
 	ifstream f;
 	f.open(sceneFilePath);
 
-	// current resource section flag
 	int section = SCENE_SECTION_UNKNOWN;					
 
 	char str[MAX_SCENE_LINE];
@@ -220,14 +205,11 @@ void CPlayScene::Load()
 	{
 		string line(str);
 
-		if (line[0] == '#') continue;	// skip comment lines	
+		if (line[0] == '#') continue;	
 		if (line == "[ASSETS]") { section = SCENE_SECTION_ASSETS; continue; };
 		if (line == "[OBJECTS]") { section = SCENE_SECTION_OBJECTS; continue; };
 		if (line[0] == '[') { section = SCENE_SECTION_UNKNOWN; continue; }	
 
-		//
-		// data section
-		//
 		switch (section)
 		{ 
 			case SCENE_SECTION_ASSETS: _ParseSection_ASSETS(line); break;
@@ -242,9 +224,6 @@ void CPlayScene::Load()
 
 void CPlayScene::Update(DWORD dt)
 {
-	// We know that Mario is the first object in the list hence we won't add him into the colliable object list
-	// TO-DO: This is a "dirty" way, need a more organized way 
-
 	vector<LPGAMEOBJECT> coObjects;
 	for (size_t i = 1; i < objects.size(); i++)
 	{
@@ -256,10 +235,8 @@ void CPlayScene::Update(DWORD dt)
 		objects[i]->Update(dt, &coObjects);
 	}
 
-	// skip the rest if scene was already unloaded (Mario::Update might trigger PlayScene::Unload)
 	if (player == NULL) return; 
 
-	// Update camera to follow mario
 	float cx, cy;
 	player->GetPosition(cx, cy);
 
@@ -269,7 +246,7 @@ void CPlayScene::Update(DWORD dt)
 
 	if (cx < 0) cx = 0;
 
-	CGame::GetInstance()->SetCamPos(cx, 0.0f /*cy*/);
+	CGame::GetInstance()->SetCamPos(cx, 0.0f);
 
 	PurgeDeletedObjects();
 }
@@ -280,9 +257,6 @@ void CPlayScene::Render()
 		objects[i]->Render();
 }
 
-/*
-*	Clear all objects from this scene
-*/
 void CPlayScene::Clear()
 {
 	vector<LPGAMEOBJECT>::iterator it;
@@ -293,12 +267,6 @@ void CPlayScene::Clear()
 	objects.clear();
 }
 
-/*
-	Unload scene
-
-	TODO: Beside objects, we need to clean up sprites, animations and textures as well 
-
-*/
 void CPlayScene::Unload()
 {
 	for (int i = 0; i < objects.size(); i++)
@@ -325,8 +293,6 @@ void CPlayScene::PurgeDeletedObjects()
 		}
 	}
 
-	// NOTE: remove_if will swap all deleted items to the end of the vector
-	// then simply trim the vector, this is much more efficient than deleting individual items
 	objects.erase(
 		std::remove_if(objects.begin(), objects.end(), CPlayScene::IsGameObjectDeleted),
 		objects.end());
