@@ -1,3 +1,3 @@
 # id	left	top	right	bottom	texture_id
 [SPRITES]
-70000	624	578	671	624	30
+70000	624	577	671	624	30

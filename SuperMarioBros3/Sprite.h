@@ -18,6 +18,7 @@ public:
 	CSprite(int id, int left, int top, int right, int bottom, LPTEXTURE tex);
 
 	void Draw(float x, float y);
+	void DrawWithScale(float x, float y, float scale);
 };
 
 typedef CSprite* LPSPRITE;
