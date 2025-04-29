@@ -52,7 +52,7 @@ void CSprite::Draw(float x, float y)
 	g->GetSpriteHandler()->DrawSpritesImmediate(&sprite, 1, 0, 0);
 }
 
-void CSprite::DrawWithScale(float x, float y, float scale = 0.3f)
+void CSprite::DrawWithScale(float x, float y, float scale = 0.33f)
 {
 	CGame* g = CGame::GetInstance();
 	float cx, cy;

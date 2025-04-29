@@ -8,6 +8,7 @@
 #include "Goomba.h"
 #include "Pipe.h"
 #include "Bush.h"
+#include "RectPlatform.h"
 
 class CPlayScene : public CScene
 {

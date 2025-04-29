@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include "AssetIDs.h"
 
@@ -11,6 +11,7 @@
 #include "Platform.h"
 #include "Pipe.h"
 #include "Bush.h"
+#include "RectPlatform.h"
 
 #include "SampleKeyEventHandler.h"
 
@@ -135,6 +136,29 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 			cell_width, cell_height, length,
 			sprite_begin, sprite_middle, sprite_end
 		);
+		break;
+	}
+
+	case OBJECT_TYPE_RECT_PLATFORM:
+	{
+		// Định dạng: type x y cell_width cell_height width height sprite_id_top_left sprite_id_top_right sprite_id_bottom_left sprite_id_bottom_right sprite_id_top sprite_id_bottom sprite_id_left sprite_id_right sprite_id_middle
+		float cell_width = (float)atof(tokens[3].c_str());
+		float cell_height = (float)atof(tokens[4].c_str());
+		int width = atoi(tokens[5].c_str());
+		int height = atoi(tokens[6].c_str());
+		int sprite_id_top_left = atoi(tokens[7].c_str());
+		int sprite_id_top_right = atoi(tokens[8].c_str());
+		int sprite_id_bottom_left = atoi(tokens[9].c_str());
+		int sprite_id_bottom_right = atoi(tokens[10].c_str());
+		int sprite_id_top = atoi(tokens[11].c_str());
+		int sprite_id_bottom = atoi(tokens[12].c_str());
+		int sprite_id_left = atoi(tokens[13].c_str());
+		int sprite_id_right = atoi(tokens[14].c_str());
+		int sprite_id_middle = atoi(tokens[15].c_str());
+
+		obj = new CRectPlatform(x, y, cell_width, cell_height, width, height, 0.33f,
+			sprite_id_top_left, sprite_id_top_right, sprite_id_bottom_left, sprite_id_bottom_right,
+			sprite_id_top, sprite_id_bottom, sprite_id_left, sprite_id_right, sprite_id_middle);
 		break;
 	}
 
@@ -269,7 +293,6 @@ void CPlayScene::Render()
 			objects[i]->Render();
 	}
 }
-
 void CPlayScene::Clear()
 {
 	vector<LPGAMEOBJECT>::iterator it;
