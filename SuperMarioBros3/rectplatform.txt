@@ -1,12 +1,48 @@
 # id	left	top	right	bottom	texture_id
 [SPRITES]
 # Platform màu trắng
-80000	0	0	48	48	30      # Góc trên bên trái
-80001	94	0	142	48	30      # Góc trên bên phải
-80002	0	94	48	142	30      # Góc dưới bên trái
-80003	94	94	142	142	30      # Góc dưới bên phải
-80004	48	0	94	48	30       # Cạnh trên
-80005	48	94	94	142	30      # Cạnh dưới
-80006	0	48	48	94	30       # Cạnh trái
-80007	94	48	142	94	30      # Cạnh phải
-80008	48	48	94	94	30      # Phần giữa
+80000	0	0	48	48	30	# Góc trên bên trái
+80001	94	0	142	48	30	# Góc trên bên phải
+80002	0	94	48	142	30	# Góc dưới bên trái
+80003	94	94	142	142	30	# Góc dưới bên phải
+80004	48	0	94	48	30	# Cạnh trên
+80005	48	94	94	142	30	# Cạnh dưới
+80006	0	48	48	94	30	# Cạnh trái
+80007	94	48	142	94	30	# Cạnh phải
+80008	48	48	94	94	30	# Phần giữa
+
+# Platform màu xanh lá (green)
+81000	144	0	191	47	30	# Góc trên bên trái
+81001	240	0	287	47	30	# Góc trên bên phải
+81002	144	96	191	143	30	# Góc dưới bên trái
+81003	240	96	287	143	30	# Góc dưới bên phải
+81004	192	0	239	47	30	# Cạnh trên
+81005	192	96	239	143	30	# Cạnh dưới
+81006	144	48	191	95	30	# Cạnh trái
+81007	240	48	287	95	30	# Cạnh phải
+81008	192	48	239	95	30	# Phần giữa
+
+# Platform màu hồng (pink)
+82000	0	144	47	191	30	# Góc trên bên trái
+82001	96	144	143	191	30	# Góc trên bên phải
+82002	0	240	47	287	30	# Góc dưới bên trái
+82003	96	240	143	287	30	# Góc dưới bên phải
+82004	48	144	95	191	30	# Cạnh trên
+82005	48	240	95	287	30	# Cạnh dưới
+82006	0	192	47	239	30	# Cạnh trái
+82007	96	192	143	239	30	# Cạnh phải
+82008	48	192	95	239	30	# Phần giữa
+
+# Platform màu xanh dương (blue)
+83000	144	144	191	191	30	# Góc trên bên trái
+83001	240	144	287	191	30	# Góc trên bên phải
+83002	144	240	191	287	30	# Góc dưới bên trái
+83003	240	240	287	287	30	# Góc dưới bên phải
+83004	192	144	239	191	30	# Cạnh trên
+83005	192	240	239	287	30	# Cạnh dưới
+83006	144	192	191	239	30	# Cạnh trái
+83007	240	192	287	239	30	# Cạnh phải
+83008	192	192	239	239	30	# Phần giữa
+
+# bóng của RectPlatform
+84000	290	215	311	311	30
