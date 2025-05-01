@@ -1,6 +1,6 @@
 # id	left	top	right	bottom	texture_id
 [SPRITES]
-# Platform màu trắng (0, 0, 142, 142) trong world-1-1.png (ID 30)
+# Platform màu trắng
 80000	0	0	48	48	30      # Góc trên bên trái
 80001	94	0	142	48	30      # Góc trên bên phải
 80002	0	94	48	142	30      # Góc dưới bên trái

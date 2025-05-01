@@ -6,27 +6,6 @@
 #include "Textures.h"
 #include "Game.h"
 
-void CRectPlatform::RenderBoundingBox()
-{
-	D3DXVECTOR3 p(x, y, 0);
-	RECT rect;
-
-	LPTEXTURE bbox = CTextures::GetInstance()->Get(ID_TEX_BBOX);
-
-	float l, t, r, b;
-
-	GetBoundingBox(l, t, r, b);
-	rect.left = 0;
-	rect.top = 0;
-	rect.right = (int)r - (int)l;
-	rect.bottom = (int)b - (int)t;
-
-	float cx, cy;
-	CGame::GetInstance()->GetCamPos(cx, cy);
-
-	CGame::GetInstance()->Draw(x - cx, y - cy, bbox, nullptr, BBOX_ALPHA, rect.right - 1, rect.bottom - 1);
-}
-
 void CRectPlatform::Render()
 {
 	if (this->width <= 0 || this->height <= 0) return;
@@ -102,21 +81,18 @@ void CRectPlatform::Render()
 				this->scale);
 		}
 	}
-
-	RenderBoundingBox();
 }
 
 void CRectPlatform::GetBoundingBox(float& l, float& t, float& r, float& b)
 {
 	l = x - (this->width * this->cellWidth * this->scale) / 2;
-	t = y - (this->height * this->cellHeight * this->scale) / 2;
-	r = l + (this->width * this->cellWidth * this->scale);
-	b = t + (this->height * this->cellHeight * this->scale);
+	t = y - ((this->height + 1) * this->cellHeight * this->scale) / 2;
+	r = x + (this->width * this->cellWidth * this->scale) / 2 - this->cellWidth * this->scale;
+	b = y + ((this->height - 1) * this->cellHeight * this->scale) / 2;
 }
 
 int CRectPlatform::IsDirectionColliable(float nx, float ny)
 {
-	// Only collide from the top direction (just like the Platform class)
 	if (nx == 0 && ny == -1) return 1;
 	else return 0;
 }
