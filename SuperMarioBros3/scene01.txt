@@ -59,7 +59,7 @@ rectplatform.txt
 # RECT_PLATFORM
 # Định dạng: type x y cell_width cell_height width height sprite_id_top_left sprite_id_top_right sprite_id_bottom_left sprite_id_bottom_right sprite_id_top sprite_id_bottom sprite_id_left sprite_id_right sprite_id_middle
 # Platform trắng (3x3 cell, mỗi cell 48x48 pixel, scale 0.33)
-8	90	130	48	48	3	4	80000	80001	80002	80003	80004	80005	80006	80007	80008
+8	90	130	48	48	2	5	80000	80001	80002	80003	80004	80005	80006	80007	80008
 # Platform xanh lá (green)
 8	150	130	48	48	3	3	81000	81001	81002	81003	81004	81005	81006	81007	81008
 # Platform hồng (pink)

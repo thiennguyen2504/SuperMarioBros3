@@ -19,6 +19,7 @@ public:
 
 	void Draw(float x, float y);
 	void DrawWithScale(float x, float y, float scale);
+	void DrawWithScaleY(float x, float y, float scale_y, float scale_x);
 };
 
 typedef CSprite* LPSPRITE;

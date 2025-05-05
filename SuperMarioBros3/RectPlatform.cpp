@@ -10,9 +10,8 @@
 // Hằng số cho sprite bóng
 #define SHADOW_SPRITE_WIDTH 22.0f
 #define SHADOW_SPRITE_HEIGHT 97.0f
-#define SHADOW_HEIGHT_REDUCTION 8.0f
+#define SHADOW_HEIGHT_REDUCTION 20.0f
 #define SHADOW_OFFSET_X 6.0f
-#define SHADOW_Y_ADJUSTMENT 6.0f
 
 void CRectPlatform::Render()
 {
@@ -22,16 +21,17 @@ void CRectPlatform::Render()
     float cx, cy;
     CGame::GetInstance()->GetCamPos(cx, cy);
 
-    // Render shadow first
+    // Render shadow
     float l, t, r, b;
     GetBoundingBox(l, t, r, b);
     float platform_height = this->height * this->cellHeight * this->scale;
-    float shadow_height = platform_height - SHADOW_HEIGHT_REDUCTION;
-    float shadow_scale = shadow_height / SHADOW_SPRITE_HEIGHT;
-    float shadow_width = SHADOW_SPRITE_WIDTH * shadow_scale;
+    float shadow_height = (this->height * this->cellHeight - SHADOW_HEIGHT_REDUCTION) * this->scale;
+    float shadow_scale_y = shadow_height / SHADOW_SPRITE_HEIGHT;
+    float shadow_scale_x = this->scale; 
+    float shadow_width = SHADOW_SPRITE_WIDTH * shadow_scale_x;
     float shadow_x = r + (shadow_width / 2.0f) + SHADOW_OFFSET_X;
-    float shadow_y = b - (platform_height - SHADOW_Y_ADJUSTMENT) / 2;
-    s->Get(ID_SPRITE_PLATFORM_SHADOW)->DrawWithScale(shadow_x, shadow_y, shadow_scale);
+    float shadow_y = b - shadow_height / 2;
+    s->Get(ID_SPRITE_PLATFORM_SHADOW)->DrawWithScaleY(shadow_x, shadow_y, shadow_scale_y, shadow_scale_x);
 
     // Render corners
     s->Get(this->spriteIdTopLeft)->DrawWithScale(
