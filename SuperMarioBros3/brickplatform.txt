@@ -1,0 +1,10 @@
+# id	left	top	right	bottom	texture_id
+[SPRITES]
+#1 block
+90000	624	624	671	670	30	# Begin 
+90001	672	624	719	670	30	# Middle 
+90002	720	624	768	670	30	# End 
+#2 block
+91000	1200	768	1247	863	30	# Begin 
+91001	1248	768	1295	863	30	# Middle 
+91002	1296	768	1343	863	30	# End 

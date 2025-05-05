@@ -12,6 +12,7 @@
 #include "Pipe.h"
 #include "Bush.h"
 #include "RectPlatform.h"
+#include "BrickPlatform.h"
 
 #include "SampleKeyEventHandler.h"
 
@@ -159,6 +160,25 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		obj = new CRectPlatform(x, y, cell_width, cell_height, width, height, 0.33f,
 			sprite_id_top_left, sprite_id_top_right, sprite_id_bottom_left, sprite_id_bottom_right,
 			sprite_id_top, sprite_id_bottom, sprite_id_left, sprite_id_right, sprite_id_middle);
+		break;
+	}
+
+	case OBJECT_TYPE_BRICK_PLATFORM:
+	{
+		float cell_width = (float)atof(tokens[3].c_str());
+		float cell_height = (float)atof(tokens[4].c_str());
+		int length = atoi(tokens[5].c_str());
+		int sprite_begin = atoi(tokens[6].c_str());
+		int sprite_middle = atoi(tokens[7].c_str());
+		int sprite_end = atoi(tokens[8].c_str());
+		float scale = tokens.size() > 9 ? (float)atof(tokens[9].c_str()) : 0.33f;
+
+		obj = new CBrickPlatform(
+			x, y,
+			cell_width, cell_height, length,
+			sprite_begin, sprite_middle, sprite_end,
+			scale
+		);
 		break;
 	}
 
