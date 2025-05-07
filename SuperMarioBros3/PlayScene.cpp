@@ -13,6 +13,7 @@
 #include "Bush.h"
 #include "RectPlatform.h"
 #include "BrickPlatform.h"
+#include "VenusFire.h"
 
 #include "SampleKeyEventHandler.h"
 
@@ -182,6 +183,20 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		break;
 	}
 
+	case OBJECT_TYPE_VENUS_FIRE:
+	{
+		int color = atoi(tokens[3].c_str());
+		int sprite_id_left_down = atoi(tokens[4].c_str());
+		int sprite_id_left_up = atoi(tokens[5].c_str());
+		int sprite_id_right_down = atoi(tokens[6].c_str());
+		int sprite_id_right_up = atoi(tokens[7].c_str());
+
+		obj = new VenusFire(x, y, color,
+			sprite_id_left_down, sprite_id_left_up,
+			sprite_id_right_down, sprite_id_right_up);
+		break;
+	}
+
 	case OBJECT_TYPE_PORTAL:
 	{
 		float r = (float)atof(tokens[3].c_str());
@@ -274,7 +289,7 @@ void CPlayScene::Load()
 void CPlayScene::Update(DWORD dt)
 {
 	vector<LPGAMEOBJECT> coObjects;
-	for (size_t i = 1; i < objects.size(); i++)
+	for (size_t i = 0; i < objects.size(); i++) // Bắt đầu từ i = 0 để bao gồm Mario
 	{
 		coObjects.push_back(objects[i]);
 	}
@@ -313,6 +328,7 @@ void CPlayScene::Render()
 			objects[i]->Render();
 	}
 }
+
 void CPlayScene::Clear()
 {
 	vector<LPGAMEOBJECT>::iterator it;

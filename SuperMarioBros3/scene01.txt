@@ -9,10 +9,11 @@ pipe.txt
 bush.txt
 rectplatform.txt
 brickplatform.txt
+venusfire.txt
 #
 [OBJECTS]
 # type	x	y	extra_settings per object type
-# type: 0 = Mario , 1 = Brick, 2 = Goomba, 3 = Koopas, 6 = Pipe, 7 = Bush, 8 = RectPlatform, 9 = BrickPlatform
+# type: 0 = Mario , 1 = Brick, 2 = Goomba, 3 = Koopas, 6 = Pipe, 7 = Bush, 8 = RectPlatform, 9 = BrickPlatform, 10 = VenusFire
 # See OBJECT_TYPE constants in AssetIDs.h
 
 # MARIO
@@ -58,12 +59,10 @@ brickplatform.txt
 2	300	10
 
 # RECT_PLATFORM
-# Định dạng: type x y cell_width cell_height width height sprite_id_top_left sprite_id_top_right sprite_id_bottom_left sprite_id_bottom_right sprite_id_top sprite_id_bottom sprite_id_left sprite_id_right sprite_id_middle
 # Platform trắng (3x3 cell, mỗi cell 48x48 pixel, scale 0.33)
-8	90	130	48	48	3	3	80000	80001	80002	80003	80004	80005	80006	80007	80008
+8	200	130	48	48	3	3	80000	80001	80002	80003	80004	80005	80006	80007	80008
 
 # BRICK_PLATFORM
-# Định dạng: type x y cell_width cell_height length sprite_id_begin sprite_id_middle sprite_id_end scale
 9	50	100	48	48	3	90000	90001	90002	0.33
 9	100	100	48	48	3	91000	91001	91002	0.33
 
@@ -75,3 +74,7 @@ brickplatform.txt
 
 # BUSH
 7	50	160	0.33
+
+# VENUS_FIRE
+# Định dạng: type x y color sprite_id_left_down sprite_id_left_up sprite_id_right_down sprite_id_right_up
+10	80	150	0	100000	100001	100002	100003	# VenusFire đỏ, ẩn trong pipe
