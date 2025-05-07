@@ -3,33 +3,39 @@
 
 #define VENUS_FIRE_STATE_HIDDEN 0
 #define VENUS_FIRE_STATE_EMERGING 1
-#define VENUS_FIRE_STATE_ATTACKING 2
+#define VENUS_FIRE_STATE_WAITING 2
 #define VENUS_FIRE_STATE_RETREATING 3
 
-#define VENUS_FIRE_EMERGE_TIME 1000 // Thời gian thò ra (ms)
-#define VENUS_FIRE_ATTACK_TIME 500  // Thời gian dừng để bắn (ms)
-#define VENUS_FIRE_RETREAT_TIME 1000 // Thời gian rút vào (ms)
-#define VENUS_FIRE_FIREBALL_COOLDOWN 1500 // Thời gian giữa các lần bắn (ms)
-#define VENUS_FIRE_ATTACK_RANGE 500 // Khoảng cách để kích hoạt tấn công (pixel)
+#define VENUS_FIRE_EMERGE_TIME 1000   
+#define VENUS_FIRE_WAIT_TIME 1500   
+#define VENUS_FIRE_RETREAT_TIME 1000  
+#define VENUS_FIRE_HIDDEN_TIME 2000   
+#define VENUS_FIRE_FIREBALL_COOLDOWN 1500
+#define VENUS_FIRE_ATTACK_RANGE 100.0f
+
+#define VENUS_FIRE_EMERGE_SPEED 0.03f 
+#define VENUS_FIRE_RETREAT_SPEED 0.03f
+#define VENUS_FIRE_EMERGE_HEIGHT 38.0f 
 
 class VenusFire : public Enemy
 {
 protected:
-    int color; // 0: đỏ, 1: xanh
+    int color;
     int spriteIdLeftDown, spriteIdLeftUp, spriteIdRightDown, spriteIdRightUp;
-    bool isFacingRight; // Hướng thay đổi động dựa trên vị trí Mario (trục X)
-    bool isMarioAbove;  // Hướng thay đổi động dựa trên vị trí Mario (trục Y)
+    bool isFacingRight;
+    bool isMarioAbove;
     int state;
     ULONGLONG moveTimer;
+    ULONGLONG waitTimer;
+    ULONGLONG cycleTimer;
     ULONGLONG fireballTimer;
-    float baseY; // Vị trí y ban đầu (ẩn trong ống)
-    float targetY; // Vị trí y mục tiêu khi di chuyển
+    float baseY;
+    float targetY;
+    float maxEmergeY;
 
     virtual void GetBoundingBox(float& left, float& top, float& right, float& bottom) override;
     virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects) override;
     virtual void Render() override;
-
-    virtual void OnCollisionWith(LPCOLLISIONEVENT e) override;
 
 public:
     VenusFire(float x, float y, int color,

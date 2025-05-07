@@ -55,6 +55,9 @@ venusfire.txt
 4	160	120
 4	180	120
 
+# VENUS_FIRE
+10	80	165	0	100000	100001	100002	100003	
+
 # GOOMBA
 2	300	10
 
@@ -64,7 +67,6 @@ venusfire.txt
 
 # BRICK_PLATFORM
 9	50	100	48	48	3	90000	90001	90002	0.33
-9	100	100	48	48	3	91000	91001	91002	0.33
 
 # PORTAL
 50	300	110	316	140	2
@@ -75,6 +77,3 @@ venusfire.txt
 # BUSH
 7	50	160	0.33
 
-# VENUS_FIRE
-# Định dạng: type x y color sprite_id_left_down sprite_id_left_up sprite_id_right_down sprite_id_right_up
-10	80	150	0	100000	100001	100002	100003	# VenusFire đỏ, ẩn trong pipe

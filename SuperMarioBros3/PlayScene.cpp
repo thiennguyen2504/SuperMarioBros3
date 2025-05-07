@@ -14,6 +14,7 @@
 #include "RectPlatform.h"
 #include "BrickPlatform.h"
 #include "VenusFire.h"
+#include "Fireball.h"
 
 #include "SampleKeyEventHandler.h"
 
@@ -143,7 +144,6 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 
 	case OBJECT_TYPE_RECT_PLATFORM:
 	{
-		// Định dạng: type x y cell_width cell_height width height sprite_id_top_left sprite_id_top_right sprite_id_bottom_left sprite_id_bottom_right sprite_id_top sprite_id_bottom sprite_id_left sprite_id_right sprite_id_middle
 		float cell_width = (float)atof(tokens[3].c_str());
 		float cell_height = (float)atof(tokens[4].c_str());
 		int width = atoi(tokens[5].c_str());
@@ -194,6 +194,13 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		obj = new VenusFire(x, y, color,
 			sprite_id_left_down, sprite_id_left_up,
 			sprite_id_right_down, sprite_id_right_up);
+		break;
+	}
+
+	case OBJECT_TYPE_FIREBALL:
+	{
+		bool isFacingRight = atoi(tokens[3].c_str());
+		obj = new Fireball(x, y, isFacingRight);
 		break;
 	}
 
@@ -288,15 +295,31 @@ void CPlayScene::Load()
 
 void CPlayScene::Update(DWORD dt)
 {
+	newObjects.clear();
+
+	// Purge deleted objects before updating to ensure objects vector is clean
+	PurgeDeletedObjects();
+
 	vector<LPGAMEOBJECT> coObjects;
-	for (size_t i = 0; i < objects.size(); i++) // Bắt đầu từ i = 0 để bao gồm Mario
+	for (size_t i = 0; i < objects.size(); i++)
 	{
-		coObjects.push_back(objects[i]);
+		if (objects[i]) // Only add non-null objects to coObjects
+		{
+			coObjects.push_back(objects[i]);
+		}
 	}
 
 	for (size_t i = 0; i < objects.size(); i++)
 	{
-		objects[i]->Update(dt, &coObjects);
+		if (objects[i]) // Only update non-null objects
+		{
+			objects[i]->Update(dt, &coObjects);
+		}
+	}
+
+	for (size_t i = 0; i < newObjects.size(); i++)
+	{
+		objects.push_back(newObjects[i]);
 	}
 
 	if (player == NULL) return;
