@@ -14,6 +14,7 @@
 #include "BrickPlatform.h"
 #include "VenusFire.h"
 #include "Fireball.h"
+#include "RedKoopaTroopa.h"
 #include "SampleKeyEventHandler.h"
 
 class CPlayScene : public CScene

@@ -1,0 +1,16 @@
+# id	left	top	right	bottom	texture_id
+[SPRITES]
+110000	28	67	43	92	40	# spr-red-koopa-troopa-walk-left-0
+110001	47	66	62	92	40	# spr-red-koopa-troopa-walk-left-1
+110002	196	83	211	109	40	# spr-red-koopa-troopa-walk-right-0
+110003	215	83	230	109	40	# spr-red-koopa-troopa-walk-right-1
+110004	29	97	44	112	40	# spr-red-koopa-troopa-shell-idle
+110005	50	96	65	111	40	# spr-red-koopa-troopa-shell-run-1
+110006	71	96	86	111	40	# spr-red-koopa-troopa-shell-run-2
+
+# aniId	spriteId1 frameTime1	spriteId2 frameTime2	...
+[ANIMATIONS]
+200021	110000	100	110001	100
+200022	110002	100	110003	100
+200023	110014	100
+200024	110014	100	110015	100	11006	100

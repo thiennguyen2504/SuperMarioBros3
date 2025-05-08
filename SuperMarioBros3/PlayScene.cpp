@@ -15,6 +15,7 @@
 #include "BrickPlatform.h"
 #include "VenusFire.h"
 #include "Fireball.h"
+#include "RedKoopaTroopa.h"
 
 #include "SampleKeyEventHandler.h"
 
@@ -144,6 +145,7 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 
 	case OBJECT_TYPE_RECT_PLATFORM:
 	{
+		// Định dạng: type x y cell_width cell_height width height sprite_id_top_left sprite_id_top_right sprite_id_bottom_left sprite_id_bottom_right sprite_id_top sprite_id_bottom sprite_id_left sprite_id_right sprite_id_middle
 		float cell_width = (float)atof(tokens[3].c_str());
 		float cell_height = (float)atof(tokens[4].c_str());
 		int width = atoi(tokens[5].c_str());
@@ -199,9 +201,16 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 
 	case OBJECT_TYPE_FIREBALL:
 	{
+		// Fireball will be created dynamically by VenusFire, but we need to parse it for potential manual placement
 		float targetX = (float)atof(tokens[3].c_str());
 		float targetY = (float)atof(tokens[4].c_str());
 		obj = new Fireball(x, y, targetX, targetY);
+		break;
+	}
+
+	case OBJECT_TYPE_RED_KOOPA_TROOPA:
+	{
+		obj = new RedKoopaTroopa(x, y);
 		break;
 	}
 

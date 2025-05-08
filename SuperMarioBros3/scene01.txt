@@ -10,6 +10,7 @@ bush.txt
 rectplatform.txt
 brickplatform.txt
 venusfire.txt
+koopatroopa.txt
 #
 [OBJECTS]
 # type	x	y	extra_settings per object type
@@ -80,3 +81,5 @@ venusfire.txt
 # BUSH
 7	50	160	0.33
 
+# RED_KOOPA_TROOPA
+12	200	10
