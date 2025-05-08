@@ -1,5 +1,5 @@
 [SETTINGS]
-start	5
+start	1
 width	320
 height	240
 
@@ -19,3 +19,4 @@ height	240
 20	textures\misc.png
 30	textures\world-1-1.png
 40	textures\enemy.png
+50	textures\fireball1.png

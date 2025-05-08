@@ -14,6 +14,7 @@
 #include "RectPlatform.h"
 #include "BrickPlatform.h"
 #include "VenusFire.h"
+#include "Fireball.h"
 
 #include "SampleKeyEventHandler.h"
 
@@ -197,6 +198,14 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		break;
 	}
 
+	case OBJECT_TYPE_FIREBALL:
+	{
+		float targetX = (float)atof(tokens[3].c_str());
+		float targetY = (float)atof(tokens[4].c_str());
+		obj = new Fireball(x, y, targetX, targetY);
+		break;
+	}
+
 	case OBJECT_TYPE_PORTAL:
 	{
 		float r = (float)atof(tokens[3].c_str());
@@ -288,15 +297,32 @@ void CPlayScene::Load()
 
 void CPlayScene::Update(DWORD dt)
 {
+	newObjects.clear(); // Clear newObjects at the start of each frame
+
+	// Purge deleted objects before updating to ensure objects vector is clean
+	PurgeDeletedObjects();
+
 	vector<LPGAMEOBJECT> coObjects;
-	for (size_t i = 0; i < objects.size(); i++) // Bắt đầu từ i = 0 để bao gồm Mario
+	for (size_t i = 0; i < objects.size(); i++)
 	{
-		coObjects.push_back(objects[i]);
+		if (objects[i]) // Only add non-null objects to coObjects
+		{
+			coObjects.push_back(objects[i]);
+		}
 	}
 
 	for (size_t i = 0; i < objects.size(); i++)
 	{
-		objects[i]->Update(dt, &coObjects);
+		if (objects[i]) // Only update non-null objects
+		{
+			objects[i]->Update(dt, &coObjects);
+		}
+	}
+
+	// Add any new objects created during this frame to the main objects list
+	for (size_t i = 0; i < newObjects.size(); i++)
+	{
+		objects.push_back(newObjects[i]);
 	}
 
 	if (player == NULL) return;

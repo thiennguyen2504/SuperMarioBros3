@@ -1,10 +1,18 @@
 # id	left	top	right	bottom	texture_id
 [SPRITES]
-100000	7	33	23	65	40	# VenusFire Red Left Down
-100001	7	71	23	103	40	# VenusFire Red Left Up
-100002	196	8	211	40	40	# VenusFire Red Right Down
-100003	196	46	211	78	40	# VenusFire Red Right Up
-100004	6	166	23	190	40	# VenusFire Green Left Down
-100005	6	195	23	219	40	# VenusFire Green Left Up
-100006	223	10	239	34	40	# VenusFire Green Right Down
-100007	223	39	239	63	40	# VenusFire Green Right Up
+100000	7	33	23	65	40
+100001	7	71	23	103	40
+100002	196	8	211	40	40
+100003	196	46	211	78	40
+100004	6	166	23	190	40
+100005	6	195	23	219	40
+100006	223	10	239	34	40
+100007	223	39	239	63	40
+100011	0	1	8	9	50	# sprite-fire-ball-0
+100012	11	0	19	9	50	# sprite-fire-ball-1
+100013	22	1	30	9	50	# sprite-fire-ball-2
+100014	33	0	41	9	50	# sprite-fire-ball-3
+
+# aniId	spriteId1 frameTime1	spriteId2 frameTime2	...
+[ANIMATIONS]
+1000	100011	100	100012	100	100013	100	100014	100
