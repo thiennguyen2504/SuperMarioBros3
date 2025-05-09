@@ -33,7 +33,6 @@
 #define MARIO_STATE_SIT				600
 #define MARIO_STATE_SIT_RELEASE		601
 
-
 #pragma region ANIMATION_ID
 
 #define ID_ANI_MARIO_IDLE_RIGHT 400
@@ -82,9 +81,6 @@
 
 #define GROUND_Y 160.0f
 
-
-
-
 #define	MARIO_LEVEL_SMALL	1
 #define	MARIO_LEVEL_BIG		2
 
@@ -98,8 +94,9 @@
 #define MARIO_SMALL_BBOX_WIDTH  13
 #define MARIO_SMALL_BBOX_HEIGHT 12
 
-
 #define MARIO_UNTOUCHABLE_TIME 2500
+
+class RedKoopaTroopa; // Forward declaration
 
 class CMario : public CGameObject
 {
@@ -114,11 +111,16 @@ class CMario : public CGameObject
 	BOOLEAN isOnPlatform;
 	int coin;
 
+	RedKoopaTroopa* heldKoopa; // Koopa being held by Mario
+	BOOLEAN isHolding; // Flag to indicate if Mario is holding a Koopa
+	BOOLEAN isRunning; // Flag to indicate if Mario is holding the run key
+
 	void OnCollisionWithGoomba(LPCOLLISIONEVENT e);
 	void OnCollisionWithCoin(LPCOLLISIONEVENT e);
 	void OnCollisionWithPortal(LPCOLLISIONEVENT e);
 	void OnCollisionWithVenusFire(LPCOLLISIONEVENT e);
 	void OnCollisionWithFireball(LPCOLLISIONEVENT e);
+	void OnCollisionWithRedKoopaTroopa(LPCOLLISIONEVENT e);
 
 	int GetAniIdBig();
 	int GetAniIdSmall();
@@ -136,12 +138,21 @@ public:
 		untouchable_start = -1;
 		isOnPlatform = false;
 		coin = 0;
+
+		heldKoopa = nullptr;
+		isHolding = false;
+		isRunning = false;
 	}
 	void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
 	void Render();
 	void SetState(int state);
 
 	BOOLEAN IsUntouchable() { return untouchable; }
+	BOOLEAN IsHolding() const { return isHolding; }
+	BOOLEAN IsRunning() const { return isRunning; }
+	void SetRunning(BOOLEAN running) { isRunning = running; }
+	RedKoopaTroopa* GetHeldKoopa() { return heldKoopa; }
+	void SetHeldKoopa(RedKoopaTroopa* koopa) { heldKoopa = koopa; isHolding = (koopa != nullptr); }
 
 	int IsCollidable()
 	{

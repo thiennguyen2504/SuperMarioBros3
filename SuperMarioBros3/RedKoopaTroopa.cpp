@@ -3,6 +3,8 @@
 #include "Brick.h"
 #include "Goomba.h"
 #include "VenusFire.h"
+#include "Pipe.h"
+#include "BrickPlatform.h"
 #include "Collision.h"
 #include "AssetIDs.h"
 
@@ -11,6 +13,9 @@ RedKoopaTroopa::RedKoopaTroopa(float x, float y) : Enemy(x, y)
     this->startX = x;
     this->direction = -1; // Start walking left
     this->isOnPlatform = false;
+    this->isPositionFixed = false;
+    this->hasBounced = false;
+    this->bounceCooldownStart = 0;
     this->shellIdleStart = 0;
     this->vx = direction * RED_KOOPA_WALKING_SPEED;
     this->vy = 0;
@@ -28,16 +33,31 @@ void RedKoopaTroopa::GetBoundingBox(float& left, float& top, float& right, float
 
 void RedKoopaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
-    vy += ay * dt;
+    // Reset bounce flag at the start of each frame
+    hasBounced = false;
 
-    // Update velocity based on state
-    if (state == RED_KOOPA_STATE_WALKING)
+    // Skip updating position in SHELL_IDLE to prevent unwanted movement
+    if (state == RED_KOOPA_STATE_SHELL_IDLE && isPositionFixed)
     {
-        vx = direction * RED_KOOPA_WALKING_SPEED;
+        y = fixedY; // Keep Y position fixed
+        vx = 0;
+        vy = 0;
     }
-    else if (state == RED_KOOPA_STATE_SHELL_RUNNING)
+    else
     {
-        vx = direction * RED_KOOPA_SHELL_RUNNING_SPEED;
+        vy += ay * dt;
+
+        // Update velocity based on state
+        if (state == RED_KOOPA_STATE_WALKING)
+        {
+            vx = direction * RED_KOOPA_WALKING_SPEED;
+        }
+        else if (state == RED_KOOPA_STATE_SHELL_RUNNING)
+        {
+            vx = direction * RED_KOOPA_SHELL_RUNNING_SPEED;
+        }
+
+        Enemy::Update(dt, coObjects);
     }
 
     // Check for shell idle timeout to revive
@@ -63,10 +83,17 @@ void RedKoopaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
             obj->GetBoundingBox(objLeft, objTop, objRight, objBottom);
 
             // Check if Koopa's bottom edge is just above or touching the object's top
-            if (bottomEdge >= objTop - 1 && bottomEdge <= objTop + 1 &&
+            if (bottomEdge >= objTop - 8 && bottomEdge <= objTop + 8 &&
                 rightEdge > objLeft && leftEdge < objRight)
             {
                 isOnPlatform = true;
+                vy = 0; // Prevent falling through the platform
+                y = objTop - (state == RED_KOOPA_STATE_WALKING ? RED_KOOPA_BBOX_HEIGHT : RED_KOOPA_SHELL_BBOX_HEIGHT) / 2 - 0.1f; // Adjust position to sit on top
+                if (state == RED_KOOPA_STATE_SHELL_IDLE)
+                {
+                    fixedY = y; // Store the fixed Y position
+                    isPositionFixed = true;
+                }
                 break;
             }
         }
@@ -86,7 +113,7 @@ void RedKoopaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
                 obj->GetBoundingBox(objLeft, objTop, objRight, objBottom);
 
                 // Check if Koopa's bottom edge is just above or touching the object's top
-                if (bottomEdge >= objTop - 1 && bottomEdge <= objTop + 1)
+                if (bottomEdge >= objTop - 8 && bottomEdge <= objTop + 8)
                 {
                     if (direction == 1 && rightEdge + 1 >= objLeft && rightEdge <= objRight)
                     {
@@ -108,7 +135,8 @@ void RedKoopaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
         }
     }
 
-    Enemy::Update(dt, coObjects);
+    // Use collision processing to handle interactions with other objects
+    CCollision::GetInstance()->Process(this, dt, coObjects);
 }
 
 void RedKoopaTroopa::Render()
@@ -140,11 +168,12 @@ void RedKoopaTroopa::SetState(int state)
         vx = direction * RED_KOOPA_WALKING_SPEED;
         vy = 0;
         ay = RED_KOOPA_GRAVITY;
+        isPositionFixed = false;
         break;
     case RED_KOOPA_STATE_SHELL_IDLE:
         vx = 0;
         vy = 0;
-        ay = RED_KOOPA_GRAVITY;
+        ay = 0; 
         StartShellIdleTimer();
         break;
     case RED_KOOPA_STATE_SHELL_RUNNING:
@@ -152,12 +181,14 @@ void RedKoopaTroopa::SetState(int state)
         vy = 0;
         ay = RED_KOOPA_GRAVITY;
         ResetShellIdleTimer();
+        isPositionFixed = false;
         break;
     case RED_KOOPA_STATE_CARRIED:
         vx = 0;
         vy = 0;
         ay = 0;
         StartShellIdleTimer();
+        isPositionFixed = false;
         break;
     }
 }
@@ -186,5 +217,54 @@ void RedKoopaTroopa::OnCollisionWithVenusFire(LPCOLLISIONEVENT e)
     if (state == RED_KOOPA_STATE_SHELL_RUNNING && e->nx != 0)
     {
         venusFire->Delete();
+    }
+}
+
+void RedKoopaTroopa::OnCollisionWith(LPCOLLISIONEVENT e)
+{
+    // Handle collisions with Goomba
+    if (dynamic_cast<CGoomba*>(e->obj))
+    {
+        OnCollisionWithGoomba(e);
+    }
+    // Handle collisions with VenusFire
+    else if (dynamic_cast<VenusFire*>(e->obj))
+    {
+        OnCollisionWithVenusFire(e);
+    }
+    // Handle collisions with blocking objects (for bouncing)
+    else if (e->obj->IsBlocking())
+    {
+        if (e->ny > 0) // Koopa lands on top of a blocking object
+        {
+            vy = 0;
+            y += e->t * vy + e->ny * 0.4f; // Adjust position to sit on top
+            if (state == RED_KOOPA_STATE_SHELL_IDLE)
+            {
+                fixedY = y;
+                isPositionFixed = true;
+            }
+        }
+        if (e->nx != 0 && state == RED_KOOPA_STATE_SHELL_RUNNING && !hasBounced && CanBounce())
+        {
+            // Only bounce off Pipe or BrickPlatform
+            bool shouldBounce = dynamic_cast<CPipe*>(e->obj) != nullptr || dynamic_cast<CBrickPlatform*>(e->obj) != nullptr;
+            if (shouldBounce)
+            {
+                float objLeft, objTop, objRight, objBottom;
+                e->obj->GetBoundingBox(objLeft, objTop, objRight, objBottom);
+                ReverseDirection();
+                if (e->nx > 0)
+                {
+                    x = objRight + RED_KOOPA_BBOX_WIDTH / 2 + 2.0f; // Further increased offset
+                }
+                else
+                {
+                    x = objLeft - RED_KOOPA_BBOX_WIDTH / 2 - 2.0f; // Further increased offset
+                }
+                hasBounced = true;
+                bounceCooldownStart = GetTickCount64();
+            }
+        }
     }
 }

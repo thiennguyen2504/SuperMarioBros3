@@ -9,6 +9,7 @@
 #include "Portal.h"
 #include "VenusFire.h"
 #include "Fireball.h"
+#include "RedKoopaTroopa.h"
 
 #include "Collision.h"
 
@@ -25,6 +26,14 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 		untouchable_start = 0;
 		untouchable = 0;
 	}
+
+    // Update held Koopa's position if Mario is holding it
+    if (isHolding && heldKoopa)
+    {
+        float koopaX = x + (nx > 0 ? MARIO_BIG_BBOX_WIDTH / 2 : -MARIO_BIG_BBOX_WIDTH / 2);
+        float koopaY = y;
+        heldKoopa->SetPosition(koopaX, koopaY);
+    }
 
 	CCollision::GetInstance()->Process(this, dt, coObjects);
 }
@@ -55,10 +64,12 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 		OnCollisionWithCoin(e);
 	else if (dynamic_cast<CPortal*>(e->obj))
 		OnCollisionWithPortal(e);
-	else if (dynamic_cast<VenusFire*>(e->obj))
-		OnCollisionWithVenusFire(e);
-	else if (dynamic_cast<Fireball*>(e->obj))
-		OnCollisionWithFireball(e);
+    else if (dynamic_cast<VenusFire*>(e->obj))
+        OnCollisionWithVenusFire(e);
+    else if (dynamic_cast<Fireball*>(e->obj))
+        OnCollisionWithFireball(e);
+    else if (dynamic_cast<RedKoopaTroopa*>(e->obj))
+        OnCollisionWithRedKoopaTroopa(e);
 }
 
 void CMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
@@ -111,7 +122,6 @@ void CMario::OnCollisionWithVenusFire(LPCOLLISIONEVENT e)
 {
 	VenusFire* venusFire = dynamic_cast<VenusFire*>(e->obj);
 
-	// VenusFire cannot be defeated by jumping on top, so we only handle side collisions
 	if (e->ny >= 0) // Hit by VenusFire (side or from below)
 	{
 		if (untouchable == 0)
@@ -148,6 +158,71 @@ void CMario::OnCollisionWithFireball(LPCOLLISIONEVENT e)
 			SetState(MARIO_STATE_DIE);
 		}
 	}
+}
+
+void CMario::OnCollisionWithRedKoopaTroopa(LPCOLLISIONEVENT e)
+{
+    RedKoopaTroopa* koopa = dynamic_cast<RedKoopaTroopa*>(e->obj);
+
+    // Mario jumps on top of Koopa
+    if (e->ny < 0)
+    {
+        if (koopa->GetState() == RED_KOOPA_STATE_WALKING)
+        {
+            koopa->SetState(RED_KOOPA_STATE_SHELL_IDLE);
+            vy = -MARIO_JUMP_DEFLECT_SPEED;
+        }
+        else if (koopa->GetState() == RED_KOOPA_STATE_SHELL_RUNNING)
+        {
+            koopa->SetState(RED_KOOPA_STATE_SHELL_IDLE);
+            vy = -MARIO_JUMP_DEFLECT_SPEED;
+        }
+    }
+    // Mario collides with Koopa from the side
+    else if (e->nx != 0)
+    {
+        if (koopa->GetState() == RED_KOOPA_STATE_WALKING || koopa->GetState() == RED_KOOPA_STATE_SHELL_RUNNING)
+        {
+            if (untouchable == 0)
+            {
+                if (level > MARIO_LEVEL_SMALL)
+                {
+                    level = MARIO_LEVEL_SMALL;
+                    StartUntouchable();
+                }
+                else
+                {
+                    DebugOut(L">>> Mario DIE >>> \n");
+                    SetState(MARIO_STATE_DIE);
+                }
+            }
+        }
+        else if (koopa->GetState() == RED_KOOPA_STATE_SHELL_IDLE)
+        {
+            if (isRunning)
+            {
+                if (isHolding)
+                {
+                    // If already holding, kick the shell
+                    koopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
+                    koopa->SetDirection(nx);
+                    SetHeldKoopa(nullptr);
+                }
+                else
+                {
+                    // Pick up the Koopa shell
+                    koopa->SetState(RED_KOOPA_STATE_CARRIED);
+                    SetHeldKoopa(koopa);
+                }
+            }
+            else
+            {
+                // Kick the shell without holding
+                koopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
+                koopa->SetDirection(nx);
+            }
+        }
+    }
 }
 
 //
@@ -210,7 +285,6 @@ int CMario::GetAniIdSmall()
 
 	return aniId;
 }
-
 
 //
 // Get animdation ID for big Mario
@@ -304,24 +378,40 @@ void CMario::SetState(int state)
 		maxVx = MARIO_RUNNING_SPEED;
 		ax = MARIO_ACCEL_RUN_X;
 		nx = 1;
+        isRunning = true;
 		break;
 	case MARIO_STATE_RUNNING_LEFT:
 		if (isSitting) break;
 		maxVx = -MARIO_RUNNING_SPEED;
 		ax = -MARIO_ACCEL_RUN_X;
 		nx = -1;
+        isRunning = true;
 		break;
 	case MARIO_STATE_WALKING_RIGHT:
 		if (isSitting) break;
 		maxVx = MARIO_WALKING_SPEED;
 		ax = MARIO_ACCEL_WALK_X;
 		nx = 1;
+        isRunning = false;
+        if (isHolding && heldKoopa)
+        {
+            heldKoopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
+            heldKoopa->SetDirection(nx);
+            SetHeldKoopa(nullptr);
+        }
 		break;
 	case MARIO_STATE_WALKING_LEFT:
 		if (isSitting) break;
 		maxVx = -MARIO_WALKING_SPEED;
 		ax = -MARIO_ACCEL_WALK_X;
 		nx = -1;
+        isRunning = false;
+        if (isHolding && heldKoopa)
+        {
+            heldKoopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
+            heldKoopa->SetDirection(nx);
+            SetHeldKoopa(nullptr);
+        }
 		break;
 	case MARIO_STATE_JUMP:
 		if (isSitting) break;
@@ -360,12 +450,25 @@ void CMario::SetState(int state)
 	case MARIO_STATE_IDLE:
 		ax = 0.0f;
 		vx = 0.0f;
+        isRunning = false;
+        if (isHolding && heldKoopa)
+        {
+            heldKoopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
+            heldKoopa->SetDirection(nx);
+            SetHeldKoopa(nullptr);
+        }
 		break;
 
 	case MARIO_STATE_DIE:
 		vy = -MARIO_JUMP_DEFLECT_SPEED;
 		vx = 0;
 		ax = 0;
+        if (isHolding && heldKoopa)
+        {
+            heldKoopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
+            heldKoopa->SetDirection(nx);
+            SetHeldKoopa(nullptr);
+        }
 		break;
 	}
 
@@ -407,5 +510,11 @@ void CMario::SetLevel(int l)
 	{
 		y -= (MARIO_BIG_BBOX_HEIGHT - MARIO_SMALL_BBOX_HEIGHT) / 2;
 	}
+    if (isHolding && heldKoopa)
+    {
+        heldKoopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
+        heldKoopa->SetDirection(nx);
+        SetHeldKoopa(nullptr);
+    }
 	level = l;
 }

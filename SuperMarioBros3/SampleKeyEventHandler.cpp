@@ -9,7 +9,7 @@
 void CSampleKeyHandler::OnKeyDown(int KeyCode)
 {
 	//DebugOut(L"[INFO] KeyDown: %d\n", KeyCode);
-	CMario* mario = (CMario *)((LPPLAYSCENE)CGame::GetInstance()->GetCurrentScene())->GetPlayer(); 
+	CMario* mario = (CMario*)((LPPLAYSCENE)CGame::GetInstance()->GetCurrentScene())->GetPlayer();
 
 	switch (KeyCode)
 	{
@@ -47,10 +47,13 @@ void CSampleKeyHandler::OnKeyUp(int KeyCode)
 	case DIK_K:
 		mario->SetState(MARIO_STATE_SIT_RELEASE);
 		break;
+	case DIK_A:
+		mario->SetRunning(false);
+		break;
 	}
 }
 
-void CSampleKeyHandler::KeyState(BYTE *states)
+void CSampleKeyHandler::KeyState(BYTE* states)
 {
 	LPGAME game = CGame::GetInstance();
 	CMario* mario = (CMario*)((LPPLAYSCENE)CGame::GetInstance()->GetCurrentScene())->GetPlayer();
@@ -58,17 +61,29 @@ void CSampleKeyHandler::KeyState(BYTE *states)
 	if (game->IsKeyDown(DIK_L))
 	{
 		if (game->IsKeyDown(DIK_A))
+		{
+			mario->SetRunning(true);
 			mario->SetState(MARIO_STATE_RUNNING_RIGHT);
+		}
 		else
+		{
 			mario->SetState(MARIO_STATE_WALKING_RIGHT);
+		}
 	}
 	else if (game->IsKeyDown(DIK_J))
 	{
 		if (game->IsKeyDown(DIK_A))
+		{
+			mario->SetRunning(true);
 			mario->SetState(MARIO_STATE_RUNNING_LEFT);
+		}
 		else
+		{
 			mario->SetState(MARIO_STATE_WALKING_LEFT);
+		}
 	}
 	else
+	{
 		mario->SetState(MARIO_STATE_IDLE);
+	}
 }
