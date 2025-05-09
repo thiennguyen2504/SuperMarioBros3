@@ -3,7 +3,7 @@
 
 #include "Animation.h"
 #include "Animations.h"
-
+#include "Game.h" // Added to access CGame
 #include "debug.h"
 
 #define MARIO_WALKING_SPEED		0.1f
@@ -58,7 +58,6 @@
 
 #define ID_ANI_MARIO_DIE 999
 
-// SMALL MARIO
 #define ID_ANI_MARIO_SMALL_IDLE_RIGHT 1100
 #define ID_ANI_MARIO_SMALL_IDLE_LEFT 1102
 
@@ -77,6 +76,15 @@
 #define ID_ANI_MARIO_SMALL_JUMP_RUN_RIGHT 1600
 #define ID_ANI_MARIO_SMALL_JUMP_RUN_LEFT 1601
 
+#define ID_ANI_MARIO_BIG_HOLD_IDLE_RIGHT 1700
+#define ID_ANI_MARIO_BIG_HOLD_IDLE_LEFT 1701
+#define ID_ANI_MARIO_BIG_HOLD_RUN_RIGHT 1710
+#define ID_ANI_MARIO_BIG_HOLD_RUN_LEFT 1711
+
+#define ID_ANI_MARIO_SMALL_HOLD_IDLE_RIGHT 1800
+#define ID_ANI_MARIO_SMALL_HOLD_IDLE_LEFT 1801
+#define ID_ANI_MARIO_SMALL_HOLD_RUN_RIGHT 1810
+#define ID_ANI_MARIO_SMALL_HOLD_RUN_LEFT 1811
 #pragma endregion
 
 #define GROUND_Y 160.0f
@@ -95,15 +103,16 @@
 #define MARIO_SMALL_BBOX_HEIGHT 12
 
 #define MARIO_UNTOUCHABLE_TIME 2500
+#define MARIO_UNTOUCHABLE_BLINK_INTERVAL 50
 
-class RedKoopaTroopa; // Forward declaration
+class RedKoopaTroopa;
 
 class CMario : public CGameObject
 {
 	BOOLEAN isSitting;
 	float maxVx;
-	float ax;				// acceleration on x 
-	float ay;				// acceleration on y 
+	float ax;
+	float ay;
 
 	int level;
 	int untouchable;
@@ -111,9 +120,9 @@ class CMario : public CGameObject
 	BOOLEAN isOnPlatform;
 	int coin;
 
-	RedKoopaTroopa* heldKoopa; // Koopa being held by Mario
-	BOOLEAN isHolding; // Flag to indicate if Mario is holding a Koopa
-	BOOLEAN isRunning; // Flag to indicate if Mario is holding the run key
+	RedKoopaTroopa* heldKoopa;
+	BOOLEAN isHolding;
+	BOOLEAN isRunning;
 
 	void OnCollisionWithGoomba(LPCOLLISIONEVENT e);
 	void OnCollisionWithCoin(LPCOLLISIONEVENT e);
@@ -121,7 +130,6 @@ class CMario : public CGameObject
 	void OnCollisionWithVenusFire(LPCOLLISIONEVENT e);
 	void OnCollisionWithFireball(LPCOLLISIONEVENT e);
 	void OnCollisionWithRedKoopaTroopa(LPCOLLISIONEVENT e);
-
 	int GetAniIdBig();
 	int GetAniIdSmall();
 
@@ -146,6 +154,7 @@ public:
 	void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
 	void Render();
 	void SetState(int state);
+	void OnHitByKoopa();
 
 	BOOLEAN IsUntouchable() { return untouchable; }
 	BOOLEAN IsHolding() const { return isHolding; }
@@ -153,7 +162,8 @@ public:
 	void SetRunning(BOOLEAN running) { isRunning = running; }
 	RedKoopaTroopa* GetHeldKoopa() { return heldKoopa; }
 	void SetHeldKoopa(RedKoopaTroopa* koopa) { heldKoopa = koopa; isHolding = (koopa != nullptr); }
-
+	int GetDirection() const { return nx; }
+	BOOLEAN IsKeyDown(int KeyCode) { return CGame::GetInstance()->IsKeyDown(KeyCode); } 
 	int IsCollidable()
 	{
 		return (state != MARIO_STATE_DIE);

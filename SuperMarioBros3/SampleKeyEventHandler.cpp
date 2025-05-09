@@ -8,7 +8,6 @@
 
 void CSampleKeyHandler::OnKeyDown(int KeyCode)
 {
-	//DebugOut(L"[INFO] KeyDown: %d\n", KeyCode);
 	CMario* mario = (CMario*)((LPPLAYSCENE)CGame::GetInstance()->GetCurrentScene())->GetPlayer();
 
 	switch (KeyCode)
@@ -28,16 +27,13 @@ void CSampleKeyHandler::OnKeyDown(int KeyCode)
 	case DIK_0:
 		mario->SetState(MARIO_STATE_DIE);
 		break;
-	case DIK_R: // reset
-		//Reload();
+	case DIK_R:
 		break;
 	}
 }
 
 void CSampleKeyHandler::OnKeyUp(int KeyCode)
 {
-	//DebugOut(L"[INFO] KeyUp: %d\n", KeyCode);
-
 	CMario* mario = (CMario*)((LPPLAYSCENE)CGame::GetInstance()->GetCurrentScene())->GetPlayer();
 	switch (KeyCode)
 	{
@@ -48,6 +44,13 @@ void CSampleKeyHandler::OnKeyUp(int KeyCode)
 		mario->SetState(MARIO_STATE_SIT_RELEASE);
 		break;
 	case DIK_A:
+		if (mario->IsHolding())
+		{
+			RedKoopaTroopa* koopa = mario->GetHeldKoopa();
+			koopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
+			koopa->SetDirection(mario->GetDirection());
+			mario->SetHeldKoopa(nullptr);
+		}
 		mario->SetRunning(false);
 		break;
 	}
