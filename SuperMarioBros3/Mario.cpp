@@ -90,7 +90,7 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 void CMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
 {
 	CGoomba* goomba = dynamic_cast<CGoomba*>(e->obj);
-
+	
 	if (e->ny < 0)
 	{
 		if (goomba->GetState() != ENEMY_STATE_DIE)

@@ -5,7 +5,7 @@
 #define FIREBALL_BBOX_WIDTH 8
 #define FIREBALL_BBOX_HEIGHT 9
 
-#define ID_ANI_FIREBALL 1000
+#define ID_ANI_FIREBALL 10001
 
 class Fireball : public CGameObject
 {

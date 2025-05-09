@@ -10,13 +10,18 @@
 #define ID_ANI_GOOMBA_WALKING 5000
 #define ID_ANI_GOOMBA_DIE 5001
 
+#define ID_ANI_RED_GOOMBA_WALK 7000
+#define ID_ANI_RED_GOOMBA_DIE 7001
+
+#define GOOMBA_TYPE_NORMAL 0
+#define GOOMBA_TYPE_RED 1
 class CGoomba : public Enemy
 {
 protected:
     virtual void GetBoundingBox(float& left, float& top, float& right, float& bottom) override;
     virtual void Render() override;
-
+	int type; // 0: Goomba, 1: Red Goomba
 public:
-    CGoomba(float x, float y);
+    CGoomba(float x, float y, int type = GOOMBA_TYPE_NORMAL);
     virtual void SetState(int state) override;
 };

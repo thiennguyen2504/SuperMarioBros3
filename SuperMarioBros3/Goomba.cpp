@@ -1,7 +1,8 @@
 #include "Goomba.h"
 
-CGoomba::CGoomba(float x, float y) : Enemy(x, y)
+CGoomba::CGoomba(float x, float y, int type ) : Enemy(x, y)
 {
+	this->type = type;
     SetState(ENEMY_STATE_WALKING);
 }
 
@@ -25,10 +26,21 @@ void CGoomba::GetBoundingBox(float& left, float& top, float& right, float& botto
 
 void CGoomba::Render()
 {
-    int aniId = ID_ANI_GOOMBA_WALKING;
-    if (state == ENEMY_STATE_DIE)
-    {
-        aniId = ID_ANI_GOOMBA_DIE;
+    int aniId = -1;
+	if (type == GOOMBA_TYPE_RED) 
+	{
+		aniId = ID_ANI_RED_GOOMBA_WALK;
+		if (state == ENEMY_STATE_DIE)
+		{
+			aniId = ID_ANI_RED_GOOMBA_DIE;
+		}
+	}
+    else {
+        aniId = ID_ANI_GOOMBA_WALKING;
+        if (state == ENEMY_STATE_DIE)
+        {
+            aniId = ID_ANI_GOOMBA_DIE;
+        }
     }
 
     CAnimations::GetInstance()->Get(aniId)->Render(x, y);

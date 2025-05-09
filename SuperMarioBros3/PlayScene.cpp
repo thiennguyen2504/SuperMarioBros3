@@ -16,6 +16,7 @@
 #include "VenusFire.h"
 #include "Fireball.h"
 #include "RedKoopaTroopa.h"
+#include "RedParaGoomba.h"
 
 #include "SampleKeyEventHandler.h"
 
@@ -125,7 +126,11 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		obj = new CBush(x, y, scale);
 		break;
 	}
-
+	case OBJECT_TYPE_RED_PARAGOOMBA:
+	{
+		obj = new RedParaGoomba(x, y);
+		break;
+	}
 	case OBJECT_TYPE_PLATFORM:
 	{
 		float cell_width = (float)atof(tokens[3].c_str());
@@ -142,7 +147,6 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		);
 		break;
 	}
-
 	case OBJECT_TYPE_RECT_PLATFORM:
 	{
 		// Định dạng: type x y cell_width cell_height width height sprite_id_top_left sprite_id_top_right sprite_id_bottom_left sprite_id_bottom_right sprite_id_top sprite_id_bottom sprite_id_left sprite_id_right sprite_id_middle
@@ -165,7 +169,6 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 			sprite_id_top, sprite_id_bottom, sprite_id_left, sprite_id_right, sprite_id_middle);
 		break;
 	}
-
 	case OBJECT_TYPE_BRICK_PLATFORM:
 	{
 		float cell_width = (float)atof(tokens[3].c_str());
@@ -184,7 +187,6 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		);
 		break;
 	}
-
 	case OBJECT_TYPE_VENUS_FIRE:
 	{
 		int color = atoi(tokens[3].c_str());
@@ -198,7 +200,6 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 			sprite_id_right_down, sprite_id_right_up);
 		break;
 	}
-
 	case OBJECT_TYPE_FIREBALL:
 	{
 		// Fireball will be created dynamically by VenusFire, but we need to parse it for potential manual placement
@@ -207,13 +208,11 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		obj = new Fireball(x, y, targetX, targetY);
 		break;
 	}
-
 	case OBJECT_TYPE_RED_KOOPA_TROOPA:
 	{
 		obj = new RedKoopaTroopa(x, y);
 		break;
 	}
-
 	case OBJECT_TYPE_PORTAL:
 	{
 		float r = (float)atof(tokens[3].c_str());
@@ -230,14 +229,16 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		obj = new CPipe(x, y, height, sprite_id_head, sprite_id_body);
 		break;
 	}
-
 	default:
 		DebugOut(L"[ERROR] Invalid object type: %d\n", object_type);
 		return;
 	}
 
-	obj->SetPosition(x, y);
-	objects.push_back(obj);
+	if (obj != nullptr)
+	{
+		obj->SetPosition(x, y);
+		objects.push_back(obj);
+	}
 }
 
 void CPlayScene::LoadAssets(LPCWSTR assetFile)
@@ -313,7 +314,7 @@ void CPlayScene::Update(DWORD dt)
 	vector<LPGAMEOBJECT> coObjects;
 	for (size_t i = 0; i < objects.size(); i++)
 	{
-		if (objects[i]) // Only add non-null objects to coObjects
+		if (objects[i] && !objects[i]->IsDeleted())
 		{
 			coObjects.push_back(objects[i]);
 		}
@@ -321,7 +322,7 @@ void CPlayScene::Update(DWORD dt)
 
 	for (size_t i = 0; i < objects.size(); i++)
 	{
-		if (objects[i]) // Only update non-null objects
+		if (objects[i] && !objects[i]->IsDeleted() && objects[i]->GetState() != -1)
 		{
 			objects[i]->Update(dt, &coObjects);
 		}
@@ -330,7 +331,10 @@ void CPlayScene::Update(DWORD dt)
 	// Add any new objects created during this frame to the main objects list
 	for (size_t i = 0; i < newObjects.size(); i++)
 	{
-		objects.push_back(newObjects[i]);
+		if (newObjects[i] != nullptr)
+		{
+			objects.push_back(newObjects[i]);
+		}
 	}
 
 	if (player == NULL) return;
@@ -353,12 +357,12 @@ void CPlayScene::Render()
 {
 	for (int i = 0; i < objects.size(); i++)
 	{
-		if (objects[i] && !dynamic_cast<CMario*>(objects[i]))
+		if (objects[i] && !dynamic_cast<CMario*>(objects[i]) && !objects[i]->IsDeleted())
 			objects[i]->Render();
 	}
 	for (int i = 0; i < objects.size(); i++)
 	{
-		if (objects[i] && dynamic_cast<CMario*>(objects[i]))
+		if (objects[i] && dynamic_cast<CMario*>(objects[i]) && !objects[i]->IsDeleted())
 			objects[i]->Render();
 	}
 }
@@ -368,7 +372,10 @@ void CPlayScene::Clear()
 	vector<LPGAMEOBJECT>::iterator it;
 	for (it = objects.begin(); it != objects.end(); it++)
 	{
-		delete (*it);
+		if (*it != nullptr)
+		{
+			delete (*it);
+		}
 	}
 	objects.clear();
 }
@@ -376,7 +383,12 @@ void CPlayScene::Clear()
 void CPlayScene::Unload()
 {
 	for (int i = 0; i < objects.size(); i++)
-		delete objects[i];
+	{
+		if (objects[i] != nullptr)
+		{
+			delete objects[i];
+		}
+	}
 
 	objects.clear();
 	player = NULL;
@@ -384,7 +396,7 @@ void CPlayScene::Unload()
 	DebugOut(L"[INFO] Scene %d unloaded! \n", id);
 }
 
-bool CPlayScene::IsGameObjectDeleted(const LPGAMEOBJECT& o) { return o == NULL; }
+bool CPlayScene::IsGameObjectDeleted(const LPGAMEOBJECT& o) { return o == NULL || o->IsDeleted(); }
 
 void CPlayScene::PurgeDeletedObjects()
 {
@@ -392,7 +404,7 @@ void CPlayScene::PurgeDeletedObjects()
 	for (it = objects.begin(); it != objects.end(); it++)
 	{
 		LPGAMEOBJECT o = *it;
-		if (o->IsDeleted())
+		if (o != nullptr && o->IsDeleted())
 		{
 			delete o;
 			*it = NULL;

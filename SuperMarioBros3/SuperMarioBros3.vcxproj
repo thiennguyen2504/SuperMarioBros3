@@ -152,6 +152,7 @@
     <ClCompile Include="Portal.cpp" />
     <ClCompile Include="RectPlatform.cpp" />
     <ClCompile Include="RedKoopaTroopa.cpp" />
+    <ClCompile Include="RedParaGoomba.cpp" />
     <ClCompile Include="SampleKeyEventHandler.cpp" />
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="Sprites.cpp" />
@@ -183,6 +184,7 @@
     <ClInclude Include="Portal.h" />
     <ClInclude Include="RectPlatform.h" />
     <ClInclude Include="RedKoopaTroopa.h" />
+    <ClInclude Include="RedParaGoomba.h" />
     <ClInclude Include="SampleKeyEventHandler.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Sprite.h" />

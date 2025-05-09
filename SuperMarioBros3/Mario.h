@@ -3,7 +3,7 @@
 
 #include "Animation.h"
 #include "Animations.h"
-#include "Game.h" // Added to access CGame
+#include "Game.h" 
 #include "debug.h"
 
 #define MARIO_WALKING_SPEED		0.1f
@@ -178,4 +178,7 @@ public:
 	void StartUntouchable() { untouchable = 1; untouchable_start = GetTickCount64(); }
 
 	void GetBoundingBox(float& left, float& top, float& right, float& bottom);
+	float GetVy() { return vy; }
+	void SetVy(float v) { vy = v; }
+	int GetLevel() { return level; }
 };
