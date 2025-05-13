@@ -1,16 +1,12 @@
 #include <algorithm>
-#include "debug.h"
-
 #include "Mario.h"
 #include "Game.h"
-
 #include "Goomba.h"
 #include "Coin.h"
 #include "Portal.h"
 #include "VenusFire.h"
 #include "Fireball.h"
 #include "RedKoopaTroopa.h"
-
 #include "Collision.h"
 
 void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
@@ -28,24 +24,22 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
 	if (isHolding && heldKoopa)
 	{
-		// Calculate bounding boxes
 		float marioLeft, marioTop, marioRight, marioBottom;
 		GetBoundingBox(marioLeft, marioTop, marioRight, marioBottom);
 
 		float koopaLeft, koopaTop, koopaRight, koopaBottom;
 		heldKoopa->GetBoundingBox(koopaLeft, koopaTop, koopaRight, koopaBottom);
 
-		// Calculate shell position based on Mario's direction
 		float koopaX, koopaY;
-		if (nx > 0) // Moving right: left edge of shell aligns with right edge of Mario
+		if (nx > 0)
 		{
 			koopaX = marioRight + (koopaRight - koopaLeft) / 2;
 		}
-		else // Moving left: right edge of shell aligns with left edge of Mario
+		else
 		{
 			koopaX = marioLeft - (koopaRight - koopaLeft) / 2;
 		}
-		koopaY = y; // Align vertically with Mario's center
+		koopaY = y;
 
 		heldKoopa->SetPosition(koopaX, koopaY);
 	}
@@ -67,11 +61,10 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 		vy = 0;
 		if (e->ny < 0) isOnPlatform = true;
 	}
-	else
-		if (e->nx != 0 && e->obj->IsBlocking())
-		{
-			vx = 0;
-		}
+	else if (e->nx != 0 && e->obj->IsBlocking())
+	{
+		vx = 0;
+	}
 
 	if (dynamic_cast<CGoomba*>(e->obj))
 		OnCollisionWithGoomba(e);
@@ -90,7 +83,7 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 void CMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
 {
 	CGoomba* goomba = dynamic_cast<CGoomba*>(e->obj);
-	
+
 	if (e->ny < 0)
 	{
 		if (goomba->GetState() != ENEMY_STATE_DIE)
@@ -427,11 +420,32 @@ void CMario::Render()
 	}
 
 	if (state == MARIO_STATE_DIE)
+	{
 		aniId = ID_ANI_MARIO_DIE;
-	else if (level == MARIO_LEVEL_BIG)
-		aniId = GetAniIdBig();
-	else if (level == MARIO_LEVEL_SMALL)
-		aniId = GetAniIdSmall();
+	}
+	else if (isBlinking && blinkStart != 0)
+	{
+		ULONGLONG timeSinceBlink = GetTickCount64() - blinkStart;
+		if (timeSinceBlink < MARIO_BLINK_TIME)
+		{
+			ULONGLONG blinkPhase = timeSinceBlink % (2 * MARIO_BLINK_INTERVAL);
+			if (blinkPhase < MARIO_BLINK_INTERVAL)
+				aniId = (level == MARIO_LEVEL_BIG) ? GetAniIdSmall() : GetAniIdBig();
+			else
+				aniId = (level == MARIO_LEVEL_BIG) ? GetAniIdBig() : GetAniIdSmall();
+		}
+		else
+		{
+			isBlinking = false;
+			isLocked = false;
+			blinkStart = 0;
+			aniId = (level == MARIO_LEVEL_BIG) ? GetAniIdBig() : GetAniIdSmall();
+		}
+	}
+	else
+	{
+		aniId = (level == MARIO_LEVEL_BIG) ? GetAniIdBig() : GetAniIdSmall();
+	}
 
 	if (shouldRender && aniId != -1)
 	{
@@ -441,13 +455,11 @@ void CMario::Render()
 			animation->Render(x, y);
 		}
 	}
-
-	DebugOutTitle(L"Coins: %d", coin);
 }
 
 void CMario::SetState(int state)
 {
-	if (this->state == MARIO_STATE_DIE) return;
+	if (this->state == MARIO_STATE_DIE || isLocked) return;
 
 	switch (state)
 	{
@@ -480,7 +492,7 @@ void CMario::SetState(int state)
 		break;
 	case MARIO_STATE_WALKING_LEFT:
 		if (isSitting) break;
-		maxVx = -MARIO_RUNNING_SPEED;
+		maxVx = -MARIO_WALKING_SPEED;
 		ax = -MARIO_ACCEL_WALK_X;
 		nx = -1;
 		isRunning = false;
@@ -501,11 +513,9 @@ void CMario::SetState(int state)
 				vy = -MARIO_JUMP_SPEED_Y;
 		}
 		break;
-
 	case MARIO_STATE_RELEASE_JUMP:
 		if (vy < 0) vy += MARIO_JUMP_SPEED_Y / 2;
 		break;
-
 	case MARIO_STATE_SIT:
 		if (isOnPlatform && level != MARIO_LEVEL_SMALL)
 		{
@@ -515,7 +525,6 @@ void CMario::SetState(int state)
 			y += MARIO_SIT_HEIGHT_ADJUST;
 		}
 		break;
-
 	case MARIO_STATE_SIT_RELEASE:
 		if (isSitting)
 		{
@@ -524,7 +533,6 @@ void CMario::SetState(int state)
 			y -= MARIO_SIT_HEIGHT_ADJUST;
 		}
 		break;
-
 	case MARIO_STATE_IDLE:
 		ax = 0.0f;
 		vx = 0.0f;
@@ -536,7 +544,6 @@ void CMario::SetState(int state)
 			SetHeldKoopa(nullptr);
 		}
 		break;
-
 	case MARIO_STATE_DIE:
 		vy = -MARIO_JUMP_DEFLECT_SPEED;
 		vx = 0;
@@ -583,10 +590,25 @@ void CMario::GetBoundingBox(float& left, float& top, float& right, float& bottom
 
 void CMario::SetLevel(int l)
 {
-	if (this->level == MARIO_LEVEL_SMALL)
+	if (l != level)
 	{
-		y -= (MARIO_BIG_BBOX_HEIGHT - MARIO_SMALL_BBOX_HEIGHT) / 2;
+		isBlinking = true;
+		isLocked = true;
+		blinkStart = GetTickCount64();
+
+		if (this->level == MARIO_LEVEL_SMALL && l == MARIO_LEVEL_BIG)
+		{
+			y -= (MARIO_BIG_BBOX_HEIGHT - MARIO_SMALL_BBOX_HEIGHT) / 2;
+		}
+		else if (this->level == MARIO_LEVEL_BIG && l == MARIO_LEVEL_SMALL)
+		{
+			y += (MARIO_BIG_BBOX_HEIGHT - MARIO_SMALL_BBOX_HEIGHT) / 2;
+		}
+		vx = 0.0f;
+		ax = 0.0f;
+		SetState(MARIO_STATE_IDLE);
 	}
+
 	if (isHolding && heldKoopa)
 	{
 		heldKoopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);

@@ -1,7 +1,6 @@
 ﻿#include <iostream>
 #include <fstream>
 #include "AssetIDs.h"
-
 #include "PlayScene.h"
 #include "Utils.h"
 #include "Textures.h"
@@ -17,13 +16,13 @@
 #include "Fireball.h"
 #include "RedKoopaTroopa.h"
 #include "RedParaGoomba.h"
-
+#include "Mushroom.h"
+#include "QuestionBlock.h"
 #include "SampleKeyEventHandler.h"
 
 using namespace std;
 
-CPlayScene::CPlayScene(int id, LPCWSTR filePath) :
-	CScene(id, filePath)
+CPlayScene::CPlayScene(int id, LPCWSTR filePath) : CScene(id, filePath)
 {
 	player = NULL;
 	key_handler = new CSampleKeyHandler(this);
@@ -43,7 +42,7 @@ void CPlayScene::_ParseSection_SPRITES(string line)
 {
 	vector<string> tokens = split(line);
 
-	if (tokens.size() < 6) return; // skip invalid lines
+	if (tokens.size() < 6) return;
 
 	int ID = atoi(tokens[0].c_str());
 	int l = atoi(tokens[1].c_str());
@@ -77,7 +76,7 @@ void CPlayScene::_ParseSection_ANIMATIONS(string line)
 {
 	vector<string> tokens = split(line);
 
-	if (tokens.size() < 3) return; // skip invalid lines - an animation must at least has 1 frame and 1 frame time
+	if (tokens.size() < 3) return;
 
 	LPANIMATION ani = new CAnimation();
 
@@ -114,7 +113,6 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		}
 		obj = new CMario(x, y);
 		player = (CMario*)obj;
-
 		DebugOut(L"[INFO] Player object has been created!\n");
 		break;
 	case OBJECT_TYPE_GOOMBA: obj = new CGoomba(x, y); break;
@@ -149,7 +147,6 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 	}
 	case OBJECT_TYPE_RECT_PLATFORM:
 	{
-		// Định dạng: type x y cell_width cell_height width height sprite_id_top_left sprite_id_top_right sprite_id_bottom_left sprite_id_bottom_right sprite_id_top sprite_id_bottom sprite_id_left sprite_id_right sprite_id_middle
 		float cell_width = (float)atof(tokens[3].c_str());
 		float cell_height = (float)atof(tokens[4].c_str());
 		int width = atoi(tokens[5].c_str());
@@ -202,7 +199,6 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 	}
 	case OBJECT_TYPE_FIREBALL:
 	{
-		// Fireball will be created dynamically by VenusFire, but we need to parse it for potential manual placement
 		float targetX = (float)atof(tokens[3].c_str());
 		float targetY = (float)atof(tokens[4].c_str());
 		obj = new Fireball(x, y, targetX, targetY);
@@ -227,6 +223,16 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		int sprite_id_head = atoi(tokens[4].c_str());
 		int sprite_id_body = atoi(tokens[5].c_str());
 		obj = new CPipe(x, y, height, sprite_id_head, sprite_id_body);
+		break;
+	}
+	case OBJECT_TYPE_QUESTION_BLOCK_COIN:
+	{
+		obj = new CQuestionBlock(x, y, QUESTION_BLOCK_TYPE_COIN);
+		break;
+	}
+	case OBJECT_TYPE_QUESTION_BLOCK_ITEM:
+	{
+		obj = new CQuestionBlock(x, y, QUESTION_BLOCK_TYPE_ITEM);
 		break;
 	}
 	default:
@@ -257,8 +263,8 @@ void CPlayScene::LoadAssets(LPCWSTR assetFile)
 
 		if (line[0] == '#') continue;
 
-		if (line == "[SPRITES]") { section = ASSETS_SECTION_SPRITES; continue; };
-		if (line == "[ANIMATIONS]") { section = ASSETS_SECTION_ANIMATIONS; continue; };
+		if (line == "[SPRITES]") { section = ASSETS_SECTION_SPRITES; continue; }
+		if (line == "[ANIMATIONS]") { section = ASSETS_SECTION_ANIMATIONS; continue; }
 		if (line[0] == '[') { section = SCENE_SECTION_UNKNOWN; continue; }
 
 		switch (section)
@@ -288,8 +294,8 @@ void CPlayScene::Load()
 		string line(str);
 
 		if (line[0] == '#') continue;
-		if (line == "[ASSETS]") { section = SCENE_SECTION_ASSETS; continue; };
-		if (line == "[OBJECTS]") { section = SCENE_SECTION_OBJECTS; continue; };
+		if (line == "[ASSETS]") { section = SCENE_SECTION_ASSETS; continue; }
+		if (line == "[OBJECTS]") { section = SCENE_SECTION_OBJECTS; continue; }
 		if (line[0] == '[') { section = SCENE_SECTION_UNKNOWN; continue; }
 
 		switch (section)
@@ -306,9 +312,8 @@ void CPlayScene::Load()
 
 void CPlayScene::Update(DWORD dt)
 {
-	newObjects.clear(); // Clear newObjects at the start of each frame
+	newObjects.clear();
 
-	// Purge deleted objects before updating to ensure objects vector is clean
 	PurgeDeletedObjects();
 
 	vector<LPGAMEOBJECT> coObjects;
@@ -328,7 +333,6 @@ void CPlayScene::Update(DWORD dt)
 		}
 	}
 
-	// Add any new objects created during this frame to the main objects list
 	for (size_t i = 0; i < newObjects.size(); i++)
 	{
 		if (newObjects[i] != nullptr)
@@ -357,13 +361,38 @@ void CPlayScene::Render()
 {
 	for (int i = 0; i < objects.size(); i++)
 	{
-		if (objects[i] && !dynamic_cast<CMario*>(objects[i]) && !objects[i]->IsDeleted())
+		if (objects[i] &&
+			!dynamic_cast<CMario*>(objects[i]) &&
+			!dynamic_cast<CMushroom*>(objects[i]) &&
+			!dynamic_cast<CQuestionBlock*>(objects[i]) &&
+			!objects[i]->IsDeleted())
+		{
 			objects[i]->Render();
+		}
 	}
+
+	for (int i = 0; i < objects.size(); i++)
+	{
+		if (objects[i] && dynamic_cast<CMushroom*>(objects[i]) && !objects[i]->IsDeleted())
+		{
+			objects[i]->Render();
+		}
+	}
+
+	for (int i = 0; i < objects.size(); i++)
+	{
+		if (objects[i] && dynamic_cast<CQuestionBlock*>(objects[i]) && !objects[i]->IsDeleted())
+		{
+			objects[i]->Render();
+		}
+	}
+
 	for (int i = 0; i < objects.size(); i++)
 	{
 		if (objects[i] && dynamic_cast<CMario*>(objects[i]) && !objects[i]->IsDeleted())
+		{
 			objects[i]->Render();
+		}
 	}
 }
 

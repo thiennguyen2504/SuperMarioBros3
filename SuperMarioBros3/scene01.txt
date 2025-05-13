@@ -11,6 +11,7 @@ rectplatform.txt
 brickplatform.txt
 venusfire.txt
 koopatroopa.txt
+questionblock.txt
 #
 [OBJECTS]
 # type	x	y	extra_settings per object type
@@ -82,3 +83,6 @@ koopatroopa.txt
 
 # RED_KOOPA_TROOPA
 #12	300	10
+
+14	100	100
+15	120	100

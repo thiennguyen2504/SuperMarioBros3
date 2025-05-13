@@ -16,6 +16,7 @@
 #include "Fireball.h"
 #include "RedKoopaTroopa.h"
 #include "SampleKeyEventHandler.h"
+#include "debug.h"
 
 class CPlayScene : public CScene
 {

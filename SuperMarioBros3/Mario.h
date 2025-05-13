@@ -1,10 +1,8 @@
 #pragma once
 #include "GameObject.h"
-
 #include "Animation.h"
 #include "Animations.h"
-#include "Game.h" 
-#include "debug.h"
+#include "Game.h"
 
 #define MARIO_WALKING_SPEED		0.1f
 #define MARIO_RUNNING_SPEED		0.2f
@@ -34,7 +32,6 @@
 #define MARIO_STATE_SIT_RELEASE		601
 
 #pragma region ANIMATION_ID
-
 #define ID_ANI_MARIO_IDLE_RIGHT 400
 #define ID_ANI_MARIO_IDLE_LEFT 401
 
@@ -105,6 +102,9 @@
 #define MARIO_UNTOUCHABLE_TIME 2500
 #define MARIO_UNTOUCHABLE_BLINK_INTERVAL 50
 
+#define MARIO_BLINK_TIME 500
+#define MARIO_BLINK_INTERVAL 100
+
 class RedKoopaTroopa;
 
 class CMario : public CGameObject
@@ -123,6 +123,10 @@ class CMario : public CGameObject
 	RedKoopaTroopa* heldKoopa;
 	BOOLEAN isHolding;
 	BOOLEAN isRunning;
+
+	BOOLEAN isBlinking;
+	ULONGLONG blinkStart;
+	BOOLEAN isLocked; 
 
 	void OnCollisionWithGoomba(LPCOLLISIONEVENT e);
 	void OnCollisionWithCoin(LPCOLLISIONEVENT e);
@@ -150,6 +154,10 @@ public:
 		heldKoopa = nullptr;
 		isHolding = false;
 		isRunning = false;
+
+		isBlinking = false;
+		blinkStart = 0;
+		isLocked = false;
 	}
 	void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
 	void Render();
@@ -163,7 +171,7 @@ public:
 	RedKoopaTroopa* GetHeldKoopa() { return heldKoopa; }
 	void SetHeldKoopa(RedKoopaTroopa* koopa) { heldKoopa = koopa; isHolding = (koopa != nullptr); }
 	int GetDirection() const { return nx; }
-	BOOLEAN IsKeyDown(int KeyCode) { return CGame::GetInstance()->IsKeyDown(KeyCode); } 
+	BOOLEAN IsKeyDown(int KeyCode) { return CGame::GetInstance()->IsKeyDown(KeyCode); }
 	int IsCollidable()
 	{
 		return (state != MARIO_STATE_DIE);
