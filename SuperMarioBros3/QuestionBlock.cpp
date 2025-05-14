@@ -3,7 +3,8 @@
 #include "Mario.h"
 #include "PlayScene.h"
 #include "Mushroom.h"
-#include "debug.h"
+#include "Coin.h"
+#include "Leaf.h"
 
 CQuestionBlock::CQuestionBlock(float x, float y, int blockType) : CGameObject(x, y)
 {
@@ -13,7 +14,6 @@ CQuestionBlock::CQuestionBlock(float x, float y, int blockType) : CGameObject(x,
     originalY = y;
     bounceStart = 0;
     SetState(QUESTION_BLOCK_STATE_ACTIVE);
-    DebugOut(L"[DEBUG] CQuestionBlock created: type=%d, x=%f, y=%f, hasItem=%d\n", type, x, y, hasItem);
 }
 
 void CQuestionBlock::GetBoundingBox(float& left, float& top, float& right, float& bottom)
@@ -53,7 +53,6 @@ void CQuestionBlock::Render()
 {
     int aniId = (state == QUESTION_BLOCK_STATE_ACTIVE) ? ID_ANI_QUESTION_BLOCK_ACTIVE : ID_ANI_QUESTION_BLOCK_INACTIVE;
     CAnimations::GetInstance()->Get(aniId)->Render(x, y);
-    RenderBoundingBox();
 }
 
 void CQuestionBlock::OnCollisionWith(LPCOLLISIONEVENT e)
@@ -66,24 +65,22 @@ void CQuestionBlock::OnCollisionWith(LPCOLLISIONEVENT e)
             CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
             if (type == QUESTION_BLOCK_TYPE_COIN)
             {
-                // Placeholder: Tạo CCoin (sẽ cài đặt sau)
+                CCoin* coin = new CCoin(x, y - QUESTION_BLOCK_BBOX_HEIGHT, true);
+                scene->AddObject(coin);
                 hasItem = false;
                 SetState(QUESTION_BLOCK_STATE_INACTIVE);
-                DebugOut(L"[DEBUG] CQuestionBlock hit (COIN): hasItem=%d, state=%d, x=%f, y=%f\n", hasItem, state, x, y);
             }
             else if (type == QUESTION_BLOCK_TYPE_ITEM)
             {
                 if (mario->GetLevel() == MARIO_LEVEL_SMALL)
                 {
-                    // Tạo Mushroom tại y của Question Block, mục tiêu là y - QUESTION_BLOCK_BBOX_HEIGHT
                     CMushroom* mushroom = new CMushroom(x, y);
                     scene->AddObject(mushroom);
-                    DebugOut(L"[DEBUG] CQuestionBlock hit (ITEM): created Mushroom, hasItem=%d, state=%d, x=%f, y=%f\n", hasItem, state, x, y);
                 }
                 else
                 {
-                    // Placeholder: Tạo CLeaf (sẽ cài đặt sau)
-                    DebugOut(L"[DEBUG] CQuestionBlock hit (ITEM): placeholder for Leaf, hasItem=%d, state=%d, x=%f, y=%f\n", hasItem, state, x, y);
+                    CLeaf* leaf = new CLeaf(x, y - QUESTION_BLOCK_BBOX_HEIGHT);
+                    scene->AddObject(leaf);
                 }
                 hasItem = false;
                 SetState(QUESTION_BLOCK_STATE_INACTIVE);
@@ -99,11 +96,9 @@ void CQuestionBlock::StartBounce()
 {
     isBouncing = true;
     bounceStart = GetTickCount64();
-    DebugOut(L"[DEBUG] CQuestionBlock start bounce: y=%f, bounceStart=%llu\n", y, bounceStart);
 }
 
 void CQuestionBlock::SetState(int state)
 {
     CGameObject::SetState(state);
-    DebugOut(L"[DEBUG] CQuestionBlock set state: state=%d, x=%f, y=%f\n", state, x, y);
 }

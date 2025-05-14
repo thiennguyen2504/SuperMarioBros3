@@ -4,27 +4,28 @@
 #include "Animation.h"
 #include "Animations.h"
 
-#define ID_ANI_COIN 11000
+#define ID_ANI_LEAF 120003
 
-#define COIN_WIDTH 10
-#define COIN_BBOX_WIDTH 10
-#define COIN_BBOX_HEIGHT 16
+#define LEAF_BBOX_WIDTH 17
+#define LEAF_BBOX_HEIGHT 14
 
-#define COIN_BOUNCE_SPEED -0.5f
-#define COIN_GRAVITY 0.002f
-#define COIN_LIFETIME 500
+#define LEAF_BOUNCE_SPEED -0.035f
+#define LEAF_FALL_SPEED 0.015f
+#define LEAF_HORIZONTAL_SPEED 0.1f
+#define LEAF_WAVE_FREQUENCY 0.005f
+#define LEAF_BOUNCE_DURATION 600
 
-#define COIN_STATE_ACTIVE 100
+#define LEAF_STATE_ACTIVE 100
 
-class CCoin : public CGameObject {
+class CLeaf : public CGameObject {
 protected:
     float vy;
     float ay;
+    float vx;
     ULONGLONG spawnTime;
-    BOOLEAN isFromQuestionBlock;
 
 public:
-    CCoin(float x, float y, BOOLEAN fromQuestionBlock = false);
+    CLeaf(float x, float y);
     void Render();
     void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
     void GetBoundingBox(float& l, float& t, float& r, float& b);
@@ -32,4 +33,6 @@ public:
     void OnCollisionWith(LPCOLLISIONEVENT e);
     int IsBlocking() { return 0; }
     int IsCollidable() { return 1; }
+    bool IsCollidableWith(LPGAMEOBJECT obj);
+    virtual void SetState(int state) override;
 };

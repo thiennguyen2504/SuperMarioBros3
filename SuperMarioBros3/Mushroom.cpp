@@ -41,7 +41,7 @@ void CMushroom::Render()
         return;
 
     CAnimations::GetInstance()->Get(ID_ANI_MUSHROOM)->Render(x, y);
-    RenderBoundingBox();
+   // RenderBoundingBox();
 }
 
 void CMushroom::OnNoCollision(DWORD dt)

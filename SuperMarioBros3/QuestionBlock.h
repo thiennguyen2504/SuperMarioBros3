@@ -16,14 +16,15 @@
 #define ID_ANI_QUESTION_BLOCK_ACTIVE 120000
 #define ID_ANI_QUESTION_BLOCK_INACTIVE 120001
 
+
 class CQuestionBlock : public CGameObject
 {
 protected:
     int type;
-    BOOLEAN hasItem; 
-    BOOLEAN isBouncing; 
+    BOOLEAN hasItem;
+    BOOLEAN isBouncing;
     float originalY;
-    ULONGLONG bounceStart; 
+    ULONGLONG bounceStart;
 
     virtual void GetBoundingBox(float& left, float& top, float& right, float& bottom) override;
     virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects) override;

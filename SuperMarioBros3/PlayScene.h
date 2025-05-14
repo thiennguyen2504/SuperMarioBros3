@@ -1,4 +1,5 @@
 #pragma once
+#include "debug.h"
 #include "Game.h"
 #include "Textures.h"
 #include "Scene.h"
@@ -16,14 +17,16 @@
 #include "Fireball.h"
 #include "RedKoopaTroopa.h"
 #include "SampleKeyEventHandler.h"
-#include "debug.h"
+#include "Mushroom.h"
+#include "QuestionBlock.h"
+#include "Leaf.h"
 
 class CPlayScene : public CScene
 {
 protected:
     LPGAMEOBJECT player;
     vector<LPGAMEOBJECT> objects;
-    vector<LPGAMEOBJECT> newObjects; // Store new objects created during a frame
+    vector<LPGAMEOBJECT> newObjects; 
 
     void _ParseSection_SPRITES(string line);
     void _ParseSection_ANIMATIONS(string line);

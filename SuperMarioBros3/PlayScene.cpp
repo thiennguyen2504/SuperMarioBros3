@@ -18,6 +18,7 @@
 #include "RedParaGoomba.h"
 #include "Mushroom.h"
 #include "QuestionBlock.h"
+#include "Leaf.h"
 #include "SampleKeyEventHandler.h"
 
 using namespace std;
@@ -117,7 +118,7 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		break;
 	case OBJECT_TYPE_GOOMBA: obj = new CGoomba(x, y); break;
 	case OBJECT_TYPE_BRICK: obj = new CBrick(x, y); break;
-	case OBJECT_TYPE_COIN: obj = new CCoin(x, y); break;
+	case OBJECT_TYPE_COIN: obj = new CCoin(x, y, false); break;
 	case OBJECT_TYPE_BUSH:
 	{
 		float scale = tokens.size() > 3 ? (float)atof(tokens[3].c_str()) : 0.5f;
@@ -364,6 +365,7 @@ void CPlayScene::Render()
 		if (objects[i] &&
 			!dynamic_cast<CMario*>(objects[i]) &&
 			!dynamic_cast<CMushroom*>(objects[i]) &&
+			!dynamic_cast<CLeaf*>(objects[i]) &&
 			!dynamic_cast<CQuestionBlock*>(objects[i]) &&
 			!objects[i]->IsDeleted())
 		{
@@ -373,7 +375,7 @@ void CPlayScene::Render()
 
 	for (int i = 0; i < objects.size(); i++)
 	{
-		if (objects[i] && dynamic_cast<CMushroom*>(objects[i]) && !objects[i]->IsDeleted())
+		if (objects[i] && (dynamic_cast<CMushroom*>(objects[i]) || dynamic_cast<CLeaf*>(objects[i])) && !objects[i]->IsDeleted())
 		{
 			objects[i]->Render();
 		}
