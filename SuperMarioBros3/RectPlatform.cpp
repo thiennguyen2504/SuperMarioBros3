@@ -1,4 +1,4 @@
-﻿#include "RectPlatform.h"
+﻿ #include "RectPlatform.h"
 
 #include "Sprite.h"
 #include "Sprites.h"

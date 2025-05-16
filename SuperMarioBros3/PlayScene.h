@@ -21,7 +21,7 @@
 #include "Leaf.h"
 #include "HUD.h"
 
-#define GAME_MARGIN 20.0f
+#define GAME_MARGIN 10.0f
 #define HUD_HEIGHT 26.0f
 #define BACKGROUND_COLOR D3DXCOLOR(156.0f/255, 252.0f/255, 240.0f/255, 100.0f)
 

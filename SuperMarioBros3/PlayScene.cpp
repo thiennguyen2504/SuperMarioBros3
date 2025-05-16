@@ -198,6 +198,7 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		obj = new VenusFire(x, y, color,
 			sprite_id_left_down, sprite_id_left_up,
 			sprite_id_right_down, sprite_id_right_up);
+		DebugOut(L"[INFO] VenusFire object created at (%f, %f)\n", x, y);
 		break;
 	}
 	case OBJECT_TYPE_FIREBALL:
@@ -391,6 +392,8 @@ void CPlayScene::Render()
 			!dynamic_cast<CMushroom*>(objects[i]) &&
 			!dynamic_cast<CLeaf*>(objects[i]) &&
 			!dynamic_cast<CQuestionBlock*>(objects[i]) &&
+			!dynamic_cast<CPipe*>(objects[i]) &&
+			!dynamic_cast<CBrick*>(objects[i]) &&
 			!objects[i]->IsDeleted())
 		{
 			objects[i]->Render();
@@ -398,14 +401,14 @@ void CPlayScene::Render()
 	}
 	for (int i = 0; i < objects.size(); i++)
 	{
-		if (objects[i] && (dynamic_cast<CMushroom*>(objects[i]) || dynamic_cast<CLeaf*>(objects[i])) && !objects[i]->IsDeleted())
+		if (objects[i] && (dynamic_cast<CMushroom*>(objects[i]) || dynamic_cast<CLeaf*>(objects[i]) || dynamic_cast<CPipe*>(objects[i])) && !objects[i]->IsDeleted())
 		{
 			objects[i]->Render();
 		}
 	}
 	for (int i = 0; i < objects.size(); i++)
 	{
-		if (objects[i] && dynamic_cast<CQuestionBlock*>(objects[i]) && !objects[i]->IsDeleted())
+		if (objects[i] && dynamic_cast<CQuestionBlock*>(objects[i]) || dynamic_cast<CBrick*>(objects[i]) && !objects[i]->IsDeleted())
 		{
 			objects[i]->Render();
 		}
@@ -421,8 +424,15 @@ void CPlayScene::Render()
 	// Reset viewport to render HUD
 	game->SetViewport(0, 0, backBufferWidth, backBufferHeight);
 
-	hud->Render();
-
+	// Render HUD
+	if (hud != nullptr)
+	{
+		hud->Render();
+	}
+	else
+	{
+		DebugOut(L"[WARNING] HUD is nullptr in Render!\n");
+	}
 }
 
 void CPlayScene::Clear()

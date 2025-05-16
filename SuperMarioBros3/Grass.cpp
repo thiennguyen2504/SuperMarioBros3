@@ -3,7 +3,7 @@
 
 CGrass::CGrass(float x, float y, int height, int type) : CGameObject(x, y)
 {
-	this->height = height > 0 ? height : 1;
+	this->height = height;
 	this->type = type;
 }
 
