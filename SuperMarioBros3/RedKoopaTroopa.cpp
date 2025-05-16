@@ -9,6 +9,7 @@
 #include "AssetIDs.h"
 #include "Mario.h"
 #include "PlayScene.h"
+#include "RedParaGoomba.h"
 
 RedKoopaTroopa::RedKoopaTroopa(float x, float y) : Enemy(x, y)
 {
@@ -253,6 +254,7 @@ void RedKoopaTroopa::OnCollisionWithVenusFire(LPCOLLISIONEVENT e)
     }
 }
 
+
 void RedKoopaTroopa::OnCollisionWith(LPCOLLISIONEVENT e)
 {
     if (dynamic_cast<CGoomba*>(e->obj))
@@ -275,7 +277,7 @@ void RedKoopaTroopa::OnCollisionWith(LPCOLLISIONEVENT e)
                 isPositionFixed = true;
             }
         }
-        if (e->nx != 0 && state == RED_KOOPA_STATE_SHELL_RUNNING && !hasBounced && CanBounce())
+        if (e->nx != 0 && e->ny == 0 && state == RED_KOOPA_STATE_SHELL_RUNNING && !hasBounced && CanBounce())
         {
             bool shouldBounce = dynamic_cast<CPipe*>(e->obj) != nullptr || dynamic_cast<CBrickPlatform*>(e->obj) != nullptr;
             if (shouldBounce)

@@ -22,3 +22,4 @@ height	240
 50	textures\fireball1.png
 60	textures\misc1.png
 70	textures\mario(1).png
+80	textures\HUD.png

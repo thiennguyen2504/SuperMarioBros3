@@ -13,6 +13,7 @@ venusfire.txt
 koopatroopa.txt
 questionblock.txt
 mapobjects.txt
+hud.txt
 
 #
 [OBJECTS]
@@ -81,7 +82,12 @@ mapobjects.txt
 #6	80	150	3	60000	60001
 
 # RED_KOOPA_TROOPA
-#12	300	10
+12	300	10
 
 14	100	100
 15	120	100
+
+#GRASS
+21	100	150	3	1  # Grass tại (500, 300), height=3, type=Left
+21	115	160	2	2  # Grass tại (600, 300), height=2, type=Mid
+21	120	140	4	3  # Grass tại (700, 300), height=4, type=Right

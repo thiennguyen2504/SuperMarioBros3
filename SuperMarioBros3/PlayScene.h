@@ -19,38 +19,45 @@
 #include "Mushroom.h"
 #include "QuestionBlock.h"
 #include "Leaf.h"
+#include "HUD.h"
+
+#define GAME_MARGIN 20.0f
+#define HUD_HEIGHT 26.0f
+#define BACKGROUND_COLOR D3DXCOLOR(156.0f/255, 252.0f/255, 240.0f/255, 100.0f)
 
 class CPlayScene : public CScene
 {
 protected:
-    LPGAMEOBJECT player;
-    vector<LPGAMEOBJECT> objects;
-    vector<LPGAMEOBJECT> newObjects;
+	LPGAMEOBJECT player;
+	vector<LPGAMEOBJECT> objects;
+	vector<LPGAMEOBJECT> newObjects;
+	LPHUD hud;
 
-    void _ParseSection_SPRITES(string line);
-    void _ParseSection_ANIMATIONS(string line);
-    void _ParseSection_ASSETS(string line);
-    void _ParseSection_OBJECTS(string line);
+	void _ParseSection_SPRITES(string line);
+	void _ParseSection_ANIMATIONS(string line);
+	void _ParseSection_ASSETS(string line);
+	void _ParseSection_OBJECTS(string line);
 
-    void LoadAssets(LPCWSTR assetFile);
+	void LoadAssets(LPCWSTR assetFile);
 
 public:
-    CPlayScene(int id, LPCWSTR filePath);
+	CPlayScene(int id, LPCWSTR filePath);
 
-    virtual void Load();
-    virtual void Update(DWORD dt);
-    virtual void Render();
-    virtual void Unload();
+	virtual void Load();
+	virtual void Update(DWORD dt);
+	virtual void Render();
+	virtual void Unload();
+
 
 	void SetPlayer(LPGAMEOBJECT player) { this->player = player; }
-    LPGAMEOBJECT GetPlayer() { return player; }
+	LPGAMEOBJECT GetPlayer() { return player; }
 
-    void AddObject(LPGAMEOBJECT obj) { newObjects.push_back(obj); }
+	void AddObject(LPGAMEOBJECT obj) { newObjects.push_back(obj); }
 
-    void Clear();
-    void PurgeDeletedObjects();
+	void Clear();
+	void PurgeDeletedObjects();
 
-    static bool IsGameObjectDeleted(const LPGAMEOBJECT& o);
+	static bool IsGameObjectDeleted(const LPGAMEOBJECT& o);
 };
 
 typedef CPlayScene* LPPLAYSCENE;

@@ -19,6 +19,7 @@
 #include "QuestionBlock.h"
 #include "Leaf.h"
 #include "SampleKeyEventHandler.h"
+#include "Grass.h"
 
 using namespace std;
 
@@ -118,6 +119,13 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 	case OBJECT_TYPE_GOOMBA: obj = new CGoomba(x, y); break;
 	case OBJECT_TYPE_BRICK: obj = new CBrick(x, y); break;
 	case OBJECT_TYPE_COIN: obj = new CCoin(x, y, false); break;
+	case OBJECT_TYPE_GRASS:
+	{
+		int height = atoi(tokens[3].c_str());
+		int type = atoi(tokens[4].c_str());
+		obj = new CGrass(x, y, height, type);
+		break;
+	}
 	case OBJECT_TYPE_RED_PARAGOOMBA:
 	{
 		obj = new RedParaGoomba(x, y);
@@ -301,6 +309,9 @@ void CPlayScene::Load()
 
 	f.close();
 
+	float hudX = CGame::GetInstance()->GetBackBufferWidth() / 2.0f;
+	hud = new CHUD(hudX, 0.0f);
+
 	DebugOut(L"[INFO] Done loading scene  %s\n", sceneFilePath);
 }
 
@@ -353,6 +364,19 @@ void CPlayScene::Update(DWORD dt)
 
 void CPlayScene::Render()
 {
+	CGame* game = CGame::GetInstance();
+	ID3D10Device* d3dDevice = game->GetDirect3DDevice();
+	ID3D10RenderTargetView* renderTargetView = game->GetRenderTargetView();
+	float backBufferWidth = game->GetBackBufferWidth();
+	float backBufferHeight = game->GetBackBufferHeight();
+
+	game->SetViewport(GAME_MARGIN, GAME_MARGIN,
+		backBufferWidth - 2 * GAME_MARGIN,
+		backBufferHeight - 2 * GAME_MARGIN - HUD_HEIGHT);
+
+	d3dDevice->ClearRenderTargetView(renderTargetView, BACKGROUND_COLOR);
+
+	// Render game objects in the viewport
 	for (int i = 0; i < objects.size(); i++)
 	{
 		if (objects[i] &&
@@ -365,7 +389,6 @@ void CPlayScene::Render()
 			objects[i]->Render();
 		}
 	}
-
 	for (int i = 0; i < objects.size(); i++)
 	{
 		if (objects[i] && (dynamic_cast<CMushroom*>(objects[i]) || dynamic_cast<CLeaf*>(objects[i])) && !objects[i]->IsDeleted())
@@ -373,7 +396,6 @@ void CPlayScene::Render()
 			objects[i]->Render();
 		}
 	}
-
 	for (int i = 0; i < objects.size(); i++)
 	{
 		if (objects[i] && dynamic_cast<CQuestionBlock*>(objects[i]) && !objects[i]->IsDeleted())
@@ -381,7 +403,6 @@ void CPlayScene::Render()
 			objects[i]->Render();
 		}
 	}
-
 	for (int i = 0; i < objects.size(); i++)
 	{
 		if (objects[i] && dynamic_cast<CMario*>(objects[i]) && !objects[i]->IsDeleted())
@@ -389,6 +410,12 @@ void CPlayScene::Render()
 			objects[i]->Render();
 		}
 	}
+
+	// Reset viewport to render HUD
+	game->SetViewport(0, 0, backBufferWidth, backBufferHeight);
+
+	hud->Render();
+
 }
 
 void CPlayScene::Clear()
@@ -412,6 +439,13 @@ void CPlayScene::Unload()
 		{
 			delete objects[i];
 		}
+	}
+
+	// Giải phóng HUD để tránh rò rỉ bộ nhớ
+	if (hud != nullptr)
+	{
+		delete hud;
+		hud = nullptr;
 	}
 
 	objects.clear();

@@ -1,0 +1,7 @@
+# id    left    top    right    bottom    texture_id
+[SPRITES]
+#Grass
+140000	387	0	476	47	30	# Head
+140001	384	48	431	95	30	# Body Left
+140002	431	48	479	95	30	# Body Right
+140003	384	144	431	190	30	# Body Mid

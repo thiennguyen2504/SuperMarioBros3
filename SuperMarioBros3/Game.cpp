@@ -232,6 +232,21 @@ void CGame::Draw(float x, float y, LPTEXTURE tex, RECT* rect, float alpha, int s
 	spriteObject->DrawSpritesImmediate(&sprite, 1, 0, 0);
 }
 
+void CGame::SetViewport(float left, float top, float right, float bottom)
+{
+	D3D10_VIEWPORT viewPort;
+	viewPort.Width = right - left;
+	viewPort.Height = bottom - top;
+	viewPort.MinDepth = 0.0f;
+	viewPort.MaxDepth = 1.0f;
+	viewPort.TopLeftX = left;
+	viewPort.TopLeftY = top;
+	pD3DDevice->RSSetViewports(1, &viewPort);
+
+	D3DXMATRIX matProjection;
+	D3DXMatrixOrthoOffCenterLH(&matProjection, left, right, top, bottom, 0.1f, 10);
+	spriteObject->SetProjectionTransform(&matProjection);
+}
 /*
 	Utility function to wrap D3DXCreateTextureFromFileEx
 */
@@ -559,4 +574,6 @@ CGame* CGame::GetInstance()
 	if (__instance == NULL) __instance = new CGame();
 	return __instance;
 }
+
+
 

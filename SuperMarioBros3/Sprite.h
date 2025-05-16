@@ -27,6 +27,7 @@ public:
     int GetTop() const { return top; }
     int GetLeft() const { return left; }
     int GetRight() const { return right; }
+	LPTEXTURE GetTexture() const { return texture; }
 };
 
 typedef CSprite* LPSPRITE;
