@@ -113,7 +113,7 @@ void VenusFire::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
         if (fireballTimer >= VENUS_FIRE_FIREBALL_COOLDOWN)
         {
-            if (mario) // Only shoot if Mario exists
+            if (mario) 
             {
                 Fireball* fireball = new Fireball(x, y, marioX, marioY);
                 CPlayScene* playScene = dynamic_cast<CPlayScene*>(CGame::GetInstance()->GetCurrentScene());

@@ -67,7 +67,6 @@ void CQuestionBlock::OnCollisionWith(LPCOLLISIONEVENT e)
             {
                 CCoin* coin = new CCoin(x, y - QUESTION_BLOCK_BBOX_HEIGHT, true);
                 scene->AddObject(coin);
-                hasItem = false;
                 SetState(QUESTION_BLOCK_STATE_INACTIVE);
             }
             else if (type == QUESTION_BLOCK_TYPE_ITEM)
@@ -82,7 +81,6 @@ void CQuestionBlock::OnCollisionWith(LPCOLLISIONEVENT e)
                     CLeaf* leaf = new CLeaf(x, y - QUESTION_BLOCK_BBOX_HEIGHT);
                     scene->AddObject(leaf);
                 }
-                hasItem = false;
                 SetState(QUESTION_BLOCK_STATE_INACTIVE);
             }
 
@@ -101,4 +99,9 @@ void CQuestionBlock::StartBounce()
 void CQuestionBlock::SetState(int state)
 {
     CGameObject::SetState(state);
+	if (state == QUESTION_BLOCK_STATE_INACTIVE)
+	{
+		hasItem = false;
+		isBouncing = false;
+	}
 }

@@ -10,7 +10,6 @@
 #include "Coin.h"
 #include "Platform.h"
 #include "Pipe.h"
-#include "Bush.h"
 #include "RectPlatform.h"
 #include "BrickPlatform.h"
 #include "VenusFire.h"
@@ -26,7 +25,7 @@ class CPlayScene : public CScene
 protected:
     LPGAMEOBJECT player;
     vector<LPGAMEOBJECT> objects;
-    vector<LPGAMEOBJECT> newObjects; 
+    vector<LPGAMEOBJECT> newObjects;
 
     void _ParseSection_SPRITES(string line);
     void _ParseSection_ANIMATIONS(string line);
@@ -43,6 +42,7 @@ public:
     virtual void Render();
     virtual void Unload();
 
+	void SetPlayer(LPGAMEOBJECT player) { this->player = player; }
     LPGAMEOBJECT GetPlayer() { return player; }
 
     void AddObject(LPGAMEOBJECT obj) { newObjects.push_back(obj); }

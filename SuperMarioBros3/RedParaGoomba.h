@@ -46,6 +46,8 @@ protected:
     virtual void OnCollisionWith(LPCOLLISIONEVENT e) override;
 
 public:
+	float GetX() { return x; }
+	float GetY() { return y; }
     RedParaGoomba(float x, float y);
     virtual void SetState(int state) override;
     void SetTarget(CMario* mario) { target = mario; }

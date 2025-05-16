@@ -7,14 +7,19 @@
 #include "VenusFire.h"
 #include "Fireball.h"
 #include "RedKoopaTroopa.h"
+#include "RedParaGoomba.h"
 #include "Collision.h"
+#include "PlayScene.h"
 
 void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
-	vy += ay * dt;
-	vx += ax * dt;
+	if (!isAppearing) 
+	{
+		vy += ay * dt;
+		vx += ax * dt;
 
-	if (abs(vx) > abs(maxVx)) vx = maxVx;
+		if (abs(vx) > abs(maxVx)) vx = maxVx;
+	}
 
 	if (GetTickCount64() - untouchable_start > MARIO_UNTOUCHABLE_TIME)
 	{
@@ -49,8 +54,11 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
 void CMario::OnNoCollision(DWORD dt)
 {
-	x += vx * dt;
-	y += vy * dt;
+	if (!isAppearing) 
+	{
+		x += vx * dt;
+		y += vy * dt;
+	}
 	isOnPlatform = false;
 }
 
@@ -78,6 +86,8 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 		OnCollisionWithFireball(e);
 	else if (dynamic_cast<RedKoopaTroopa*>(e->obj))
 		OnCollisionWithRedKoopaTroopa(e);
+	else if (dynamic_cast<RedParaGoomba*>(e->obj))
+		OnCollisionWithRedParaGoomba(e);
 }
 
 void CMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
@@ -213,6 +223,36 @@ void CMario::OnCollisionWithRedKoopaTroopa(LPCOLLISIONEVENT e)
 			{
 				koopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
 				koopa->SetDirection(nx);
+			}
+		}
+	}
+}
+
+void CMario::OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e)
+{
+	RedParaGoomba* paraGoomba = dynamic_cast<RedParaGoomba*>(e->obj);
+
+	if (e->ny < 0)
+	{
+		CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+		CGoomba* goomba = new CGoomba(paraGoomba->GetX(), paraGoomba->GetY(), GOOMBA_TYPE_RED);
+		goomba->SetState(ENEMY_STATE_WALKING);
+		scene->AddObject(goomba);
+		paraGoomba->Delete();
+		vy = -MARIO_JUMP_DEFLECT_SPEED;
+	}
+	else if (e->nx != 0)
+	{
+		if (untouchable == 0 && paraGoomba->GetState() != RED_PARAGOOMBA_STATE_DIE)
+		{
+			if (level > MARIO_LEVEL_SMALL)
+			{
+				level = MARIO_LEVEL_SMALL;
+				StartUntouchable();
+			}
+			else
+			{
+				SetState(MARIO_STATE_DIE);
 			}
 		}
 	}
@@ -408,6 +448,8 @@ int CMario::GetAniIdBig()
 
 void CMario::Render()
 {
+	if (isDeleted) return;
+
 	CAnimations* animations = CAnimations::GetInstance();
 	int aniId = -1;
 
@@ -562,7 +604,7 @@ void CMario::SetState(int state)
 
 void CMario::GetBoundingBox(float& left, float& top, float& right, float& bottom)
 {
-	if (level == MARIO_LEVEL_BIG)
+	if (level == MARIO_LEVEL_BIG || level == MARIO_LEVEL_RACCOON)
 	{
 		if (isSitting)
 		{

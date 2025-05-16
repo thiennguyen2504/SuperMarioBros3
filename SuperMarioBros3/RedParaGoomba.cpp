@@ -2,6 +2,8 @@
 #include "Game.h"
 #include "Collision.h"
 #include "PlayScene.h"
+#include "Goomba.h"
+#include "RacoonMario.h"
 
 RedParaGoomba::RedParaGoomba(float x, float y) : Enemy(x, y)
 {
@@ -48,35 +50,7 @@ void RedParaGoomba::OnNoCollision(DWORD dt)
 
 void RedParaGoomba::OnCollisionWith(LPCOLLISIONEVENT e)
 {
-    if (dynamic_cast<CMario*>(e->obj))
-    {
-        CMario* mario = dynamic_cast<CMario*>(e->obj);
-        if (e->ny > 0 && mario->IsUntouchable() == 0)
-        {
-            CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
-            CGoomba* goomba = new CGoomba(x, y, GOOMBA_TYPE_RED);
-            goomba->SetState(ENEMY_STATE_WALKING);
-            scene->AddObject(goomba);
-            isDeleted = true;
-            mario->SetVy(-MARIO_JUMP_DEFLECT_SPEED);
-        }
-        else if (e->nx != 0)
-        {
-            if (mario->IsUntouchable() == 0 && state != RED_PARAGOOMBA_STATE_DIE)
-            {
-                if (mario->GetLevel() > MARIO_LEVEL_SMALL)
-                {
-                    mario->SetLevel(MARIO_LEVEL_SMALL);
-                    mario->StartUntouchable();
-                }
-                else
-                {
-                    mario->SetState(MARIO_STATE_DIE);
-                }
-            }
-        }
-    }
-    else if (e->obj->IsBlocking())
+    if (e->obj->IsBlocking())
     {
         if (e->ny != 0)
         {
@@ -106,8 +80,11 @@ void RedParaGoomba::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
             LPGAMEOBJECT obj = coObjects->at(i);
             if (obj != nullptr && dynamic_cast<CMario*>(obj))
             {
-                target = dynamic_cast<CMario*>(obj);
-                break;
+                if (dynamic_cast<CMario*>(obj))
+                    target = dynamic_cast<CMario*>(obj);
+				else if (dynamic_cast<CRaccoonMario*>(obj))
+					target = dynamic_cast<CRaccoonMario*>(obj);
+				break;
             }
         }
     }

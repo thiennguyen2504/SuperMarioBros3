@@ -9,11 +9,11 @@
 #define LEAF_BBOX_WIDTH 17
 #define LEAF_BBOX_HEIGHT 14
 
-#define LEAF_BOUNCE_SPEED -0.035f
-#define LEAF_FALL_SPEED 0.015f
+#define LEAF_BOUNCE_SPEED -0.045f
+#define LEAF_FALL_SPEED 0.045f
 #define LEAF_HORIZONTAL_SPEED 0.1f
 #define LEAF_WAVE_FREQUENCY 0.005f
-#define LEAF_BOUNCE_DURATION 600
+#define LEAF_BOUNCE_DURATION 1000
 
 #define LEAF_STATE_ACTIVE 100
 
@@ -30,7 +30,7 @@ public:
     void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
     void GetBoundingBox(float& l, float& t, float& r, float& b);
     void OnNoCollision(DWORD dt);
-    void OnCollisionWith(LPCOLLISIONEVENT e);
+    virtual void OnCollisionWith(LPCOLLISIONEVENT e) override;
     int IsBlocking() { return 0; }
     int IsCollidable() { return 1; }
     bool IsCollidableWith(LPGAMEOBJECT obj);

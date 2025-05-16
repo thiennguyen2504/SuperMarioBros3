@@ -78,9 +78,6 @@
     <ClCompile Include="Pipe.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Bush.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="RectPlatform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -109,6 +106,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Leaf.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RacoonMario.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -185,9 +185,6 @@
     <ClInclude Include="Pipe.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Bush.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="RectPlatform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -216,6 +213,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Leaf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RacoonMario.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

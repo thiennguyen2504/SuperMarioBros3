@@ -88,6 +88,7 @@
 
 #define	MARIO_LEVEL_SMALL	1
 #define	MARIO_LEVEL_BIG		2
+#define MARIO_LEVEL_RACCOON 3
 
 #define MARIO_BIG_BBOX_WIDTH  14
 #define MARIO_BIG_BBOX_HEIGHT 24
@@ -99,16 +100,23 @@
 #define MARIO_SMALL_BBOX_WIDTH  13
 #define MARIO_SMALL_BBOX_HEIGHT 12
 
+#define MARIO_RACCOON_BBOX_WIDTH  14
+#define MARIO_RACCOON_BBOX_HEIGHT 24
+
 #define MARIO_UNTOUCHABLE_TIME 2500
 #define MARIO_UNTOUCHABLE_BLINK_INTERVAL 50
 
 #define MARIO_BLINK_TIME 500
 #define MARIO_BLINK_INTERVAL 100
 
+#define MARIO_APPEAR_TIME 200
+
 class RedKoopaTroopa;
+class RedParaGoomba;
 
 class CMario : public CGameObject
 {
+protected:
 	BOOLEAN isSitting;
 	float maxVx;
 	float ax;
@@ -126,16 +134,20 @@ class CMario : public CGameObject
 
 	BOOLEAN isBlinking;
 	ULONGLONG blinkStart;
-	BOOLEAN isLocked; 
+	BOOLEAN isLocked;
 
-	void OnCollisionWithGoomba(LPCOLLISIONEVENT e);
-	void OnCollisionWithCoin(LPCOLLISIONEVENT e);
-	void OnCollisionWithPortal(LPCOLLISIONEVENT e);
-	void OnCollisionWithVenusFire(LPCOLLISIONEVENT e);
-	void OnCollisionWithFireball(LPCOLLISIONEVENT e);
-	void OnCollisionWithRedKoopaTroopa(LPCOLLISIONEVENT e);
-	int GetAniIdBig();
-	int GetAniIdSmall();
+	BOOLEAN isAppearing;
+	ULONGLONG appearStart;
+
+	virtual void OnCollisionWithGoomba(LPCOLLISIONEVENT e);
+	virtual void OnCollisionWithCoin(LPCOLLISIONEVENT e);
+	virtual void OnCollisionWithPortal(LPCOLLISIONEVENT e);
+	virtual void OnCollisionWithVenusFire(LPCOLLISIONEVENT e);
+	virtual void OnCollisionWithFireball(LPCOLLISIONEVENT e);
+	virtual void OnCollisionWithRedKoopaTroopa(LPCOLLISIONEVENT e);
+	virtual void OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e);
+	virtual int GetAniIdBig();
+	virtual int GetAniIdSmall();
 
 public:
 	CMario(float x, float y) : CGameObject(x, y)
@@ -158,11 +170,14 @@ public:
 		isBlinking = false;
 		blinkStart = 0;
 		isLocked = false;
+
+		isAppearing = false;
+		appearStart = 0;
 	}
-	void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
-	void Render();
-	void SetState(int state);
-	void OnHitByKoopa();
+	virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
+	virtual void Render();
+	virtual void SetState(int state);
+	virtual void OnHitByKoopa();
 
 	BOOLEAN IsUntouchable() { return untouchable; }
 	BOOLEAN IsHolding() const { return isHolding; }
@@ -184,9 +199,12 @@ public:
 
 	void SetLevel(int l);
 	void StartUntouchable() { untouchable = 1; untouchable_start = GetTickCount64(); }
+	void StartAppearing() { isAppearing = true; appearStart = GetTickCount64(); }
 
 	void GetBoundingBox(float& left, float& top, float& right, float& bottom);
 	float GetVy() { return vy; }
 	void SetVy(float v) { vy = v; }
 	int GetLevel() { return level; }
+	void SetNx(int nx) { this->nx = nx; }
+	float GetVx() { return vx; }
 };

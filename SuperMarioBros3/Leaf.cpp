@@ -1,6 +1,8 @@
 #include "Leaf.h"
 #include "Mario.h"
+#include "RacoonMario.h"
 #include "Collision.h"
+#include "PlayScene.h"
 #include <cmath>
 
 CLeaf::CLeaf(float x, float y) : CGameObject(x, y)
@@ -27,11 +29,11 @@ void CLeaf::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
     if (now - spawnTime <= LEAF_BOUNCE_DURATION)
     {
         vy += ay * dt;
-        vx = 0.0f; 
+        vx = 0.0f;
     }
     else
     {
-        vy = LEAF_FALL_SPEED; 
+        vy = LEAF_FALL_SPEED;
         float t = (float)(now - spawnTime - LEAF_BOUNCE_DURATION);
         vx = LEAF_HORIZONTAL_SPEED * sin(LEAF_WAVE_FREQUENCY * t);
     }
@@ -57,7 +59,27 @@ void CLeaf::OnCollisionWith(LPCOLLISIONEVENT e)
 {
     if (dynamic_cast<CMario*>(e->obj))
     {
+        CMario* mario = dynamic_cast<CMario*>(e->obj);
+        if (mario->GetLevel() == MARIO_LEVEL_BIG)
+        {
+            CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+            float x, y;
+			mario->GetPosition(x, y);
+            CRaccoonMario* raccoonMario = new CRaccoonMario(x, y);
 
+            raccoonMario->SetState(mario->GetState());
+            raccoonMario->SetSpeed(mario->GetVx(), mario->GetVy());
+			float nx = mario->GetDirection();
+            raccoonMario->SetNx(nx);
+            raccoonMario->StartAppearing();
+
+
+            scene->AddObject(raccoonMario);
+
+            scene->SetPlayer(raccoonMario);
+
+            mario->Delete();
+        }
         isDeleted = true;
     }
 }

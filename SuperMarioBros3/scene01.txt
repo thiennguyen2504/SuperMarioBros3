@@ -1,17 +1,19 @@
 # list of object assets to load in this scene
 [ASSETS]
 mario.txt
+racoonmario.txt
 brick.txt
 coin.txt
 goomba.txt
 cloud.txt
 pipe.txt
-bush.txt
 rectplatform.txt
 brickplatform.txt
 venusfire.txt
 koopatroopa.txt
 questionblock.txt
+mapobjects.txt
+
 #
 [OBJECTS]
 # type	x	y	extra_settings per object type
@@ -77,9 +79,6 @@ questionblock.txt
 
 # PIPES
 #6	80	150	3	60000	60001
-
-# BUSH
-7	50	160	0.33
 
 # RED_KOOPA_TROOPA
 #12	300	10

@@ -9,7 +9,6 @@
 #include "Coin.h"
 #include "Platform.h"
 #include "Pipe.h"
-#include "Bush.h"
 #include "RectPlatform.h"
 #include "BrickPlatform.h"
 #include "VenusFire.h"
@@ -119,12 +118,6 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 	case OBJECT_TYPE_GOOMBA: obj = new CGoomba(x, y); break;
 	case OBJECT_TYPE_BRICK: obj = new CBrick(x, y); break;
 	case OBJECT_TYPE_COIN: obj = new CCoin(x, y, false); break;
-	case OBJECT_TYPE_BUSH:
-	{
-		float scale = tokens.size() > 3 ? (float)atof(tokens[3].c_str()) : 0.5f;
-		obj = new CBush(x, y, scale);
-		break;
-	}
 	case OBJECT_TYPE_RED_PARAGOOMBA:
 	{
 		obj = new RedParaGoomba(x, y);
