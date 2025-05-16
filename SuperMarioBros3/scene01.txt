@@ -91,3 +91,10 @@ hud.txt
 21	100	150	3	1  # Grass tại (500, 300), height=3, type=Left
 21	115	160	2	2  # Grass tại (600, 300), height=2, type=Mid
 21	120	140	4	3  # Grass tại (700, 300), height=4, type=Right
+
+[OBJECTS]
+22	100	150	140004  # MapObjects tại (100, 200) với sprite cloud1
+22	150	150	140005  # MapObjects tại (150, 220) với sprite flower
+22	200	150	140006  # MapObjects tại (200, 240) với sprite star
+22	250	150	140007  # MapObjects tại (250, 260) với sprite mushroom
+22	300	150	140008  # MapObjects tại (300, 280) với sprite bush

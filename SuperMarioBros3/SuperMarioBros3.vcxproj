@@ -147,6 +147,7 @@
     <ClCompile Include="HUD.cpp" />
     <ClCompile Include="Leaf.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MapObjects.cpp" />
     <ClCompile Include="Mario.cpp" />
     <ClCompile Include="Mushroom.cpp" />
     <ClCompile Include="Pipe.cpp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="HUD.h" />
     <ClInclude Include="KeyEventHandler.h" />
     <ClInclude Include="Leaf.h" />
+    <ClInclude Include="MapObjects.h" />
     <ClInclude Include="Mario.h" />
     <ClInclude Include="Mushroom.h" />
     <ClInclude Include="Pipe.h" />

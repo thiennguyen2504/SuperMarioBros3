@@ -20,6 +20,7 @@
 #include "Leaf.h"
 #include "SampleKeyEventHandler.h"
 #include "Grass.h"
+#include "MapObjects.h"
 
 using namespace std;
 
@@ -235,6 +236,12 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 	case OBJECT_TYPE_QUESTION_BLOCK_ITEM:
 	{
 		obj = new CQuestionBlock(x, y, QUESTION_BLOCK_TYPE_ITEM);
+		break;
+	}
+	case OBJECT_TYPE_MAPOBJECTS:
+	{
+		int sprite_id = atoi(tokens[3].c_str());
+		obj = new CMapObjects(x, y, sprite_id);
 		break;
 	}
 	default:
