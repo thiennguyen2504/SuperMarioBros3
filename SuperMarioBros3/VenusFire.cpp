@@ -3,6 +3,7 @@
 #include "Mario.h"
 #include "Fireball.h"
 #include "PlayScene.h"
+#include "RacoonMario.h"
 
 VenusFire::VenusFire(float x, float y, int color,
     int spriteIdLeftDown, int spriteIdLeftUp, int spriteIdRightDown, int spriteIdRightUp)
@@ -13,19 +14,19 @@ VenusFire::VenusFire(float x, float y, int color,
     this->spriteIdLeftUp = spriteIdLeftUp;
     this->spriteIdRightDown = spriteIdRightDown;
     this->spriteIdRightUp = spriteIdRightUp;
-    this->state = VENUS_FIRE_STATE_HIDDEN;
     this->moveTimer = 0;
     this->waitTimer = 0;
     this->cycleTimer = 0;
-    this->fireballTimer = 0;
     this->baseY = y;
     this->targetY = y;
     this->maxEmergeY = y - VENUS_FIRE_EMERGE_HEIGHT;
     this->isFacingRight = true;
     this->isMarioAbove = false;
+    this->hasFired = false;
     this->vx = 0;
     this->vy = 0;
     this->ay = 0;
+    this->state = VENUS_FIRE_STATE_HIDDEN;
 }
 
 void VenusFire::GetBoundingBox(float& left, float& top, float& right, float& bottom)
@@ -51,22 +52,35 @@ void VenusFire::GetBoundingBox(float& left, float& top, float& right, float& bot
 void VenusFire::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
     CMario* mario = nullptr;
+    CRaccoonMario* raccoonMario = nullptr;
     for (size_t i = 0; i < coObjects->size(); i++)
     {
         LPGAMEOBJECT obj = coObjects->at(i);
-        if (obj && dynamic_cast<CMario*>(obj))
+        if (obj)
         {
-            mario = dynamic_cast<CMario*>(obj);
-            break;
+            if (dynamic_cast<CMario*>(obj))
+            {
+                mario = dynamic_cast<CMario*>(obj);
+                break;
+            }
+            else if (dynamic_cast<CRaccoonMario*>(obj))
+            {
+                raccoonMario = dynamic_cast<CRaccoonMario*>(obj);
+                break;
+            }
         }
     }
 
     bool isMarioNear = false;
     bool isMarioOnPipe = false;
     float marioX = 0, marioY = 0;
-    if (mario)
+    if (mario || raccoonMario)
     {
-        mario->GetPosition(marioX, marioY);
+        if (mario)
+            mario->GetPosition(marioX, marioY);
+        else
+            raccoonMario->GetPosition(marioX, marioY);
+
         float dx = abs(x - marioX);
         float dy = abs(y - marioY);
         float distance = sqrt(dx * dx + dy * dy);
@@ -74,18 +88,13 @@ void VenusFire::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
         isFacingRight = (marioX > x);
         isMarioAbove = (marioY < y);
-
-        float pipeTop = 54;
-        float pipeLeft = 64;
-        float pipeRight = 96;
-        isMarioOnPipe = (marioY < pipeTop && marioX >= pipeLeft && marioX <= pipeRight);
     }
 
     cycleTimer += dt;
 
     if (state == VENUS_FIRE_STATE_HIDDEN)
     {
-        if (cycleTimer >= VENUS_FIRE_HIDDEN_TIME && !isMarioOnPipe)
+        if (cycleTimer >= VENUS_FIRE_HIDDEN_TIME && !isMarioOnPipe && isMarioNear)
         {
             SetState(VENUS_FIRE_STATE_EMERGING);
         }
@@ -104,25 +113,21 @@ void VenusFire::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
     else if (state == VENUS_FIRE_STATE_WAITING)
     {
         waitTimer += dt;
-        fireballTimer += dt;
 
-        if (waitTimer >= VENUS_FIRE_WAIT_TIME)
+        if (waitTimer >= VENUS_FIRE_WAIT_TIME && !hasFired && (mario || raccoonMario))
         {
-            SetState(VENUS_FIRE_STATE_RETREATING);
+            Fireball* fireball = new Fireball(x, y, marioX, marioY);
+            CPlayScene* playScene = dynamic_cast<CPlayScene*>(CGame::GetInstance()->GetCurrentScene());
+            if (playScene)
+            {
+                playScene->AddObject(fireball);
+            }
+            hasFired = true;
         }
 
-        if (fireballTimer >= VENUS_FIRE_FIREBALL_COOLDOWN)
+        if (waitTimer >= VENUS_FIRE_WAIT_TIME + VENUS_FIRE_RETREAT_DELAY)
         {
-            if (mario) 
-            {
-                Fireball* fireball = new Fireball(x, y, marioX, marioY);
-                CPlayScene* playScene = dynamic_cast<CPlayScene*>(CGame::GetInstance()->GetCurrentScene());
-                if (playScene)
-                {
-                    playScene->AddObject(fireball);
-                }
-                fireballTimer = 0;
-            }
+            SetState(VENUS_FIRE_STATE_RETREATING);
         }
     }
     else if (state == VENUS_FIRE_STATE_RETREATING)
@@ -168,7 +173,6 @@ void VenusFire::Render()
     }
 
     sprites->Get(spriteId)->Draw(x, y);
-    RenderBoundingBox();
 }
 
 void VenusFire::SetState(int state)
@@ -190,6 +194,7 @@ void VenusFire::SetState(int state)
 
     case VENUS_FIRE_STATE_WAITING:
         waitTimer = 0;
+        hasFired = false;
         vy = 0;
         break;
 

@@ -4,18 +4,18 @@
 #include "Animations.h"
 #include "Game.h"
 
-#define MARIO_WALKING_SPEED		0.1f
-#define MARIO_RUNNING_SPEED		0.2f
+#define MARIO_WALKING_SPEED		0.05f
+#define MARIO_RUNNING_SPEED		0.11f
 
-#define MARIO_ACCEL_WALK_X	0.0005f
-#define MARIO_ACCEL_RUN_X	0.0007f
+#define MARIO_ACCEL_WALK_X	0.00025f
+#define MARIO_ACCEL_RUN_X	0.000385f
 
-#define MARIO_JUMP_SPEED_Y		0.5f
-#define MARIO_JUMP_RUN_SPEED_Y	0.6f
+#define MARIO_JUMP_SPEED_Y		0.352f
+#define MARIO_JUMP_RUN_SPEED_Y	0.423f
 
-#define MARIO_GRAVITY			0.002f
+#define MARIO_GRAVITY			0.0009f
 
-#define MARIO_JUMP_DEFLECT_SPEED  0.4f
+#define MARIO_JUMP_DEFLECT_SPEED  0.3f
 
 #define MARIO_STATE_DIE				-10
 #define MARIO_STATE_IDLE			0
@@ -106,8 +106,8 @@
 #define MARIO_UNTOUCHABLE_TIME 2500
 #define MARIO_UNTOUCHABLE_BLINK_INTERVAL 50
 
-#define MARIO_BLINK_TIME 500
-#define MARIO_BLINK_INTERVAL 100
+#define MARIO_BLINK_TIME 1000
+#define MARIO_BLINK_INTERVAL 50
 
 #define MARIO_APPEAR_TIME 200
 
@@ -138,6 +138,8 @@ protected:
 
 	BOOLEAN isAppearing;
 	ULONGLONG appearStart;
+	float originalY; 
+	float originalX;
 
 	virtual void OnCollisionWithGoomba(LPCOLLISIONEVENT e);
 	virtual void OnCollisionWithCoin(LPCOLLISIONEVENT e);
@@ -146,6 +148,8 @@ protected:
 	virtual void OnCollisionWithFireball(LPCOLLISIONEVENT e);
 	virtual void OnCollisionWithRedKoopaTroopa(LPCOLLISIONEVENT e);
 	virtual void OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e);
+	virtual void OnCollisionWithMushroom(LPCOLLISIONEVENT e);
+	virtual void OnCollisionWithLeaf(LPCOLLISIONEVENT e);
 	virtual int GetAniIdBig();
 	virtual int GetAniIdSmall();
 
@@ -157,7 +161,7 @@ public:
 		ax = 0.0f;
 		ay = MARIO_GRAVITY;
 
-		level = MARIO_LEVEL_BIG;
+		level = MARIO_LEVEL_SMALL;
 		untouchable = 0;
 		untouchable_start = -1;
 		isOnPlatform = false;
@@ -173,6 +177,7 @@ public:
 
 		isAppearing = false;
 		appearStart = 0;
+		originalY = y;
 	}
 	virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
 	virtual void Render();

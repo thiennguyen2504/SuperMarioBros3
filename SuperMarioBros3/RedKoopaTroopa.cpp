@@ -10,6 +10,10 @@
 #include "Mario.h"
 #include "PlayScene.h"
 #include "RedParaGoomba.h"
+#include "QuestionBlock.h"
+#include "Coin.h"
+#include "Mushroom.h"
+#include "Leaf.h"
 
 RedKoopaTroopa::RedKoopaTroopa(float x, float y) : Enemy(x, y)
 {
@@ -21,6 +25,7 @@ RedKoopaTroopa::RedKoopaTroopa(float x, float y) : Enemy(x, y)
     this->bounceCooldownStart = 0;
     this->shellIdleStart = 0;
     this->kickCooldownStart = 0;
+    this->idleCooldownStart = 0;
     this->vx = direction * RED_KOOPA_WALKING_SPEED;
     this->vy = 0;
     this->ay = RED_KOOPA_GRAVITY;
@@ -39,7 +44,6 @@ void RedKoopaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
     hasBounced = false;
 
-    // Reset kick cooldown after it expires
     if (kickCooldownStart > 0 && (GetTickCount64() - kickCooldownStart) > RED_KOOPA_KICK_COOLDOWN)
     {
         kickCooldownStart = 0;
@@ -53,8 +57,7 @@ void RedKoopaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
     }
     else if (state == RED_KOOPA_STATE_CARRIED)
     {
-        // Skip velocity and position updates when carried (handled by Mario)
-        // Only process collisions to maintain bounding box updates
+        // Skip velocity and position updates when carried
     }
     else
     {
@@ -193,10 +196,11 @@ void RedKoopaTroopa::SetState(int state)
         vy = 0;
         ay = RED_KOOPA_GRAVITY;
         isPositionFixed = false;
+        idleCooldownStart = 0;
         if (previousState == RED_KOOPA_STATE_CARRIED)
         {
             CMario* mario = (CMario*)((LPPLAYSCENE)CGame::GetInstance()->GetCurrentScene())->GetPlayer();
-            if (mario->GetHeldKoopa() == this)
+            if (mario && mario->GetHeldKoopa() == this)
             {
                 mario->OnHitByKoopa();
                 mario->SetHeldKoopa(nullptr);
@@ -208,6 +212,7 @@ void RedKoopaTroopa::SetState(int state)
         vy = 0;
         ay = 0;
         StartShellIdleTimer();
+        idleCooldownStart = GetTickCount64(); 
         break;
     case RED_KOOPA_STATE_SHELL_RUNNING:
         vx = direction * RED_KOOPA_SHELL_RUNNING_SPEED;
@@ -215,6 +220,7 @@ void RedKoopaTroopa::SetState(int state)
         ay = RED_KOOPA_GRAVITY;
         ResetShellIdleTimer();
         isPositionFixed = false;
+        idleCooldownStart = 0;
         kickCooldownStart = GetTickCount64();
         break;
     case RED_KOOPA_STATE_CARRIED:
@@ -223,25 +229,8 @@ void RedKoopaTroopa::SetState(int state)
         ay = 0;
         StartShellIdleTimer();
         isPositionFixed = false;
+        idleCooldownStart = 0;
         break;
-    }
-}
-
-void RedKoopaTroopa::OnCollisionWithBrick(LPCOLLISIONEVENT e)
-{
-    CBrick* brick = dynamic_cast<CBrick*>(e->obj);
-    if (state == RED_KOOPA_STATE_SHELL_RUNNING && e->nx != 0)
-    {
-        brick->Delete();
-    }
-}
-
-void RedKoopaTroopa::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
-{
-    CGoomba* goomba = dynamic_cast<CGoomba*>(e->obj);
-    if (state == RED_KOOPA_STATE_SHELL_RUNNING && e->nx != 0)
-    {
-        goomba->SetState(ENEMY_STATE_DIE);
     }
 }
 
@@ -254,16 +243,96 @@ void RedKoopaTroopa::OnCollisionWithVenusFire(LPCOLLISIONEVENT e)
     }
 }
 
+void RedKoopaTroopa::OnCollisionWithQuestionBlock(LPCOLLISIONEVENT e)
+{
+    CQuestionBlock* block = dynamic_cast<CQuestionBlock*>(e->obj);
+    if (state == RED_KOOPA_STATE_SHELL_RUNNING)
+    {
+        if (e->nx != 0 && block->GetState() == QUESTION_BLOCK_STATE_ACTIVE && block->HasItem())
+        {
+            CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+            CMario* mario = (CMario*)scene->GetPlayer();
+            float bx, by;
+            block->GetPosition(bx, by);
+            if (block->GetType() == QUESTION_BLOCK_TYPE_COIN)
+            {
+                CCoin* coin = new CCoin(bx, by - QUESTION_BLOCK_BBOX_HEIGHT, true);
+                scene->AddObject(coin);
+                block->SetState(QUESTION_BLOCK_STATE_INACTIVE);
+            }
+            else if (block->GetType() == QUESTION_BLOCK_TYPE_ITEM)
+            {
+                if (mario->GetLevel() == MARIO_LEVEL_SMALL)
+                {
+                    CMushroom* mushroom = new CMushroom(bx, by);
+                    scene->AddObject(mushroom);
+                }
+                else
+                {
+                    CLeaf* leaf = new CLeaf(bx, by - QUESTION_BLOCK_BBOX_HEIGHT);
+                    scene->AddObject(leaf);
+                }
+                block->SetState(QUESTION_BLOCK_STATE_INACTIVE);
+            }
+            block->StartBounce();
+        }
+
+        if ((e->nx != 0 || e->ny > 0) && !hasBounced && CanBounce())
+        {
+            ReverseDirection();
+            if (e->nx > 0)
+            {
+                x += e->t * vx + e->nx * 0.4f;
+            }
+            else if (e->nx < 0)
+            {
+                x += e->t * vx + e->nx * 0.4f;
+            }
+            if (e->ny > 0)
+            {
+                vy = 0;
+            }
+            hasBounced = true;
+            bounceCooldownStart = GetTickCount64();
+        }
+    }
+}
+
+void RedKoopaTroopa::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
+{
+    CGoomba* goomba = dynamic_cast<CGoomba*>(e->obj);
+    if (state == RED_KOOPA_STATE_SHELL_RUNNING)
+    {
+        goomba->SetState(GOOMBA_STATE_HEADSHOT);
+    }
+}
+
+void RedKoopaTroopa::OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e)
+{
+    RedParaGoomba* paraGoomba = dynamic_cast<RedParaGoomba*>(e->obj);
+    if (state == RED_KOOPA_STATE_SHELL_RUNNING)
+    {
+        paraGoomba->SetState(RED_PARAGOOMBA_STATE_HEADSHOT);
+    }
+}
 
 void RedKoopaTroopa::OnCollisionWith(LPCOLLISIONEVENT e)
 {
-    if (dynamic_cast<CGoomba*>(e->obj))
+    if (dynamic_cast<VenusFire*>(e->obj))
+    {
+        OnCollisionWithVenusFire(e);
+    }
+    else if (dynamic_cast<CQuestionBlock*>(e->obj))
+    {
+        OnCollisionWithQuestionBlock(e);
+    }
+    else if (dynamic_cast<CGoomba*>(e->obj))
     {
         OnCollisionWithGoomba(e);
     }
-    else if (dynamic_cast<VenusFire*>(e->obj))
+    else if (dynamic_cast<RedParaGoomba*>(e->obj))
     {
-        OnCollisionWithVenusFire(e);
+        OnCollisionWithRedParaGoomba(e);
     }
     else if (e->obj->IsBlocking())
     {
@@ -277,7 +346,7 @@ void RedKoopaTroopa::OnCollisionWith(LPCOLLISIONEVENT e)
                 isPositionFixed = true;
             }
         }
-        if (e->nx != 0 && e->ny == 0 && state == RED_KOOPA_STATE_SHELL_RUNNING && !hasBounced && CanBounce())
+        if (e->nx != 0 && state == RED_KOOPA_STATE_SHELL_RUNNING && !hasBounced && CanBounce())
         {
             bool shouldBounce = dynamic_cast<CPipe*>(e->obj) != nullptr || dynamic_cast<CBrickPlatform*>(e->obj) != nullptr;
             if (shouldBounce)
@@ -302,7 +371,6 @@ void RedKoopaTroopa::OnCollisionWith(LPCOLLISIONEVENT e)
 
 int RedKoopaTroopa::IsCollidable()
 {
-    // Shell is not collidable during kick cooldown
     if (state == RED_KOOPA_STATE_SHELL_RUNNING && IsKickCooldownActive())
     {
         return 0;

@@ -28,6 +28,6 @@ public:
     void SetState(int state) override;
     int IsCollidable() { return 1; }
     int IsBlocking() { return 0; }
-	void OnNoCollision(DWORD dt) override;
-	void OnCollisionWith(LPCOLLISIONEVENT e) override;
+    void OnNoCollision(DWORD dt) override;
+    void OnCollisionWith(LPCOLLISIONEVENT e) override;
 };

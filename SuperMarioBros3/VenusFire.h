@@ -7,13 +7,12 @@
 #define VENUS_FIRE_STATE_RETREATING 3
 
 #define VENUS_FIRE_EMERGE_TIME 1000   
-#define VENUS_FIRE_WAIT_TIME 1500   
-#define VENUS_FIRE_RETREAT_TIME 1000  
+#define VENUS_FIRE_WAIT_TIME 2000   
+#define VENUS_FIRE_RETREAT_DELAY 2000  
 #define VENUS_FIRE_HIDDEN_TIME 2000   
-#define VENUS_FIRE_FIREBALL_COOLDOWN 1500
-#define VENUS_FIRE_ATTACK_RANGE 100.0f
+#define VENUS_FIRE_ATTACK_RANGE 300.0f
 
-#define VENUS_FIRE_EMERGE_SPEED 0.03f 
+#define VENUS_FIRE_EMERGE_SPEED 0.015f 
 #define VENUS_FIRE_RETREAT_SPEED 0.03f
 #define VENUS_FIRE_EMERGE_HEIGHT 38.0f 
 
@@ -24,11 +23,11 @@ protected:
     int spriteIdLeftDown, spriteIdLeftUp, spriteIdRightDown, spriteIdRightUp;
     bool isFacingRight;
     bool isMarioAbove;
+    bool hasFired; // Theo dõi trạng thái bắn
     int state;
     ULONGLONG moveTimer;
     ULONGLONG waitTimer;
     ULONGLONG cycleTimer;
-    ULONGLONG fireballTimer;
     float baseY;
     float targetY;
     float maxEmergeY;

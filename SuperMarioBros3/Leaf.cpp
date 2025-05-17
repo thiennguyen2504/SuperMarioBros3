@@ -1,6 +1,4 @@
 #include "Leaf.h"
-#include "Mario.h"
-#include "RacoonMario.h"
 #include "Collision.h"
 #include "PlayScene.h"
 #include <cmath>
@@ -57,36 +55,6 @@ void CLeaf::OnNoCollision(DWORD dt)
 
 void CLeaf::OnCollisionWith(LPCOLLISIONEVENT e)
 {
-    if (dynamic_cast<CMario*>(e->obj))
-    {
-        CMario* mario = dynamic_cast<CMario*>(e->obj);
-        if (mario->GetLevel() == MARIO_LEVEL_BIG)
-        {
-            CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
-            float x, y;
-			mario->GetPosition(x, y);
-            CRaccoonMario* raccoonMario = new CRaccoonMario(x, y);
-
-            raccoonMario->SetState(mario->GetState());
-            raccoonMario->SetSpeed(mario->GetVx(), mario->GetVy());
-			float nx = mario->GetDirection();
-            raccoonMario->SetNx(nx);
-            raccoonMario->StartAppearing();
-
-
-            scene->AddObject(raccoonMario);
-
-            scene->SetPlayer(raccoonMario);
-
-            mario->Delete();
-        }
-        isDeleted = true;
-    }
-}
-
-bool CLeaf::IsCollidableWith(LPGAMEOBJECT obj)
-{
-    return dynamic_cast<CMario*>(obj) != nullptr;
 }
 
 void CLeaf::SetState(int state)

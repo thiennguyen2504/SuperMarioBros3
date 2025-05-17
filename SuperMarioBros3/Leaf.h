@@ -33,6 +33,5 @@ public:
     virtual void OnCollisionWith(LPCOLLISIONEVENT e) override;
     int IsBlocking() { return 0; }
     int IsCollidable() { return 1; }
-    bool IsCollidableWith(LPGAMEOBJECT obj);
     virtual void SetState(int state) override;
 };

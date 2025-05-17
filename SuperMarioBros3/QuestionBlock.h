@@ -37,4 +37,7 @@ public:
     void StartBounce();
     virtual int IsCollidable() { return 1; }
     virtual int IsBlocking() { return 1; }
+	bool HasItem() { return hasItem; }
+	int GetType() { return type; }
+
 };

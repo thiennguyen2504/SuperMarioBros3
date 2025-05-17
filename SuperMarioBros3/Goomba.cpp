@@ -1,14 +1,16 @@
 #include "Goomba.h"
+#include "Game.h"
 
-CGoomba::CGoomba(float x, float y, int type ) : Enemy(x, y)
+CGoomba::CGoomba(float x, float y, int type) : Enemy(x, y)
 {
-	this->type = type;
-    SetState(ENEMY_STATE_WALKING);
+    this->type = type;
+    this->isOnPlatform = false;
+    SetState(GOOMBA_STATE_WALKING);
 }
 
 void CGoomba::GetBoundingBox(float& left, float& top, float& right, float& bottom)
 {
-    if (state == ENEMY_STATE_DIE)
+    if (state == GOOMBA_STATE_DIE || state == GOOMBA_STATE_HEADSHOT)
     {
         left = x - GOOMBA_BBOX_WIDTH / 2;
         top = y - GOOMBA_BBOX_HEIGHT_DIE / 2;
@@ -24,27 +26,72 @@ void CGoomba::GetBoundingBox(float& left, float& top, float& right, float& botto
     }
 }
 
+void CGoomba::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
+{
+    vy += ay * dt;
+    vx += ax * dt;
+
+    if (state == GOOMBA_STATE_HEADSHOT)
+    {
+        if (y > CGame::GetInstance()->GetBackBufferHeight())
+        {
+            isDeleted = true;
+        }
+    }
+
+    Enemy::Update(dt, coObjects);
+    CCollision::GetInstance()->Process(this, dt, coObjects);
+}
+
+void CGoomba::OnNoCollision(DWORD dt)
+{
+    x += vx * dt;
+    y += vy * dt;
+}
+
+void CGoomba::OnCollisionWith(LPCOLLISIONEVENT e)
+{
+    if (e->obj->IsBlocking())
+    {
+        if (e->ny != 0)
+        {
+            vy = 0;
+            if (e->ny < 0)
+            {
+                isOnPlatform = true;
+                y += e->t * vy + e->ny * 0.4f;
+            }
+        }
+        if (e->nx != 0)
+        {
+            vx = -vx;
+            x += e->t * vx + e->nx * 0.4f;
+        }
+    }
+}
+
 void CGoomba::Render()
 {
     int aniId = -1;
-	if (type == GOOMBA_TYPE_RED) 
-	{
-		aniId = ID_ANI_RED_GOOMBA_WALK;
-		if (state == ENEMY_STATE_DIE)
-		{
-			aniId = ID_ANI_RED_GOOMBA_DIE;
-		}
-	}
-    else {
+    if (type == GOOMBA_TYPE_RED)
+    {
+        aniId = ID_ANI_RED_GOOMBA_WALK;
+        if (state == GOOMBA_STATE_DIE)
+        {
+            aniId = ID_ANI_RED_GOOMBA_DIE;
+        }
+    }
+    else
+    {
         aniId = ID_ANI_GOOMBA_WALKING;
-        if (state == ENEMY_STATE_DIE)
+        if (state == GOOMBA_STATE_DIE || state == GOOMBA_STATE_HEADSHOT)
         {
             aniId = ID_ANI_GOOMBA_DIE;
         }
     }
 
     CAnimations::GetInstance()->Get(aniId)->Render(x, y);
-    RenderBoundingBox();
+    //RenderBoundingBox();
 }
 
 void CGoomba::SetState(int state)
@@ -52,14 +99,20 @@ void CGoomba::SetState(int state)
     Enemy::SetState(state);
     switch (state)
     {
-    case ENEMY_STATE_DIE:
+    case GOOMBA_STATE_DIE:
         y += (GOOMBA_BBOX_HEIGHT - GOOMBA_BBOX_HEIGHT_DIE) / 2;
         vx = 0;
         vy = 0;
         ay = 0;
         break;
-    case ENEMY_STATE_WALKING:
+    case GOOMBA_STATE_WALKING:
         vx = -GOOMBA_WALKING_SPEED;
+        ay = GOOMBA_GRAVITY;
+        break;
+    case GOOMBA_STATE_HEADSHOT:
+        y += (GOOMBA_BBOX_HEIGHT - GOOMBA_BBOX_HEIGHT_DIE) / 2;
+        vy = -HEADSHOT_JUMP_SPEED;
+        ay = GOOMBA_GRAVITY;
         break;
     }
 }

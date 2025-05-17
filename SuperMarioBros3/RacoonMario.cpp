@@ -4,6 +4,8 @@
 #include "Fireball.h"
 #include "RedKoopaTroopa.h"
 #include "RedParaGoomba.h"
+#include "Mushroom.h"
+#include "Leaf.h"
 #include "PlayScene.h"
 #include "Mario.h"
 #include "Portal.h"
@@ -117,6 +119,10 @@ void CRaccoonMario::OnCollisionWith(LPCOLLISIONEVENT e)
 		OnCollisionWithRedKoopaTroopa(e);
 	else if (dynamic_cast<RedParaGoomba*>(e->obj))
 		OnCollisionWithRedParaGoomba(e);
+	else if (dynamic_cast<CMushroom*>(e->obj))
+		OnCollisionWithMushroom(e);
+	else if (dynamic_cast<CLeaf*>(e->obj))
+		OnCollisionWithLeaf(e);
 }
 
 void CRaccoonMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
@@ -214,7 +220,9 @@ void CRaccoonMario::OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e)
 	if (e->ny < 0)
 	{
 		CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
-		CGoomba* goomba = new CGoomba(paraGoomba->GetX(), paraGoomba->GetY(), GOOMBA_TYPE_RED);
+		float gx, gy;
+		paraGoomba->GetPosition(gx, gy);
+		CGoomba* goomba = new CGoomba(gx, gy, GOOMBA_TYPE_RED);
 		goomba->SetState(ENEMY_STATE_WALKING);
 		scene->AddObject(goomba);
 		paraGoomba->Delete();
@@ -234,6 +242,8 @@ void CRaccoonMario::OnCollisionWithPortal(LPCOLLISIONEVENT e)
 	CPortal* p = (CPortal*)e->obj;
 	CGame::GetInstance()->InitiateSwitchScene(p->GetSceneId());
 }
+
+
 
 void CRaccoonMario::OnHitByKoopa()
 {

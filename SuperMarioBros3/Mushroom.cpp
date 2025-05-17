@@ -1,6 +1,5 @@
 ﻿#include "Mushroom.h"
 #include "Collision.h"
-#include "Mario.h"
 #include "PlayScene.h"
 
 CMushroom::CMushroom(float x, float y) : CGameObject(x, y)
@@ -41,7 +40,7 @@ void CMushroom::Render()
         return;
 
     CAnimations::GetInstance()->Get(ID_ANI_MUSHROOM)->Render(x, y);
-   // RenderBoundingBox();
+    // RenderBoundingBox();
 }
 
 void CMushroom::OnNoCollision(DWORD dt)
@@ -52,16 +51,7 @@ void CMushroom::OnNoCollision(DWORD dt)
 
 void CMushroom::OnCollisionWith(LPCOLLISIONEVENT e)
 {
-    if (dynamic_cast<CMario*>(e->obj))
-    {
-        CMario* mario = dynamic_cast<CMario*>(e->obj);
-        if (mario->GetLevel() == MARIO_LEVEL_SMALL)
-        {
-            mario->SetLevel(MARIO_LEVEL_BIG);
-        }
-        isDeleted = true;
-    }
-    else if (e->obj->IsBlocking())
+    if (e->obj->IsBlocking())
     {
         if (e->ny < 0)
         {

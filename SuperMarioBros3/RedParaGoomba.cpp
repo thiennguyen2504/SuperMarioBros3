@@ -4,6 +4,7 @@
 #include "PlayScene.h"
 #include "Goomba.h"
 #include "RacoonMario.h"
+#include "RedKoopaTroopa.h"
 
 RedParaGoomba::RedParaGoomba(float x, float y) : Enemy(x, y)
 {
@@ -13,13 +14,14 @@ RedParaGoomba::RedParaGoomba(float x, float y) : Enemy(x, y)
     target = nullptr;
     jumpCount = 0;
     isOnPlatform = false;
+    isHighJumping = false;
     die_start = hop_start = rest_start = -1;
     SetState(RED_PARAGOOMBA_STATE_WALKING);
 }
 
 void RedParaGoomba::GetBoundingBox(float& left, float& top, float& right, float& bottom)
 {
-    if (state == RED_PARAGOOMBA_STATE_DIE)
+    if (state == RED_PARAGOOMBA_STATE_DIE || state == RED_PARAGOOMBA_STATE_HEADSHOT)
     {
         left = x - RED_PARAGOOMBA_BBOX_WIDTH / 2;
         top = y - RED_PARAGOOMBA_BBOX_HEIGHT_DIE / 2;
@@ -59,13 +61,13 @@ void RedParaGoomba::OnCollisionWith(LPCOLLISIONEVENT e)
             {
                 isOnPlatform = true;
             }
-        }
-        else if (e->nx != 0 && jumpCount == 0)
-        {
-            vx = -vx;
-            nx = (vx > 0) ? 1 : -1;
-        }
+		}
+		else if (e->nx != 0)
+		{
+			vx = 0;
+		}
     }
+
 }
 
 void RedParaGoomba::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
@@ -73,74 +75,93 @@ void RedParaGoomba::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
     vy += ay * dt;
     vx += ax * dt;
 
-    if (target == nullptr)
+    if (state == RED_PARAGOOMBA_STATE_HEADSHOT)
     {
+        if (y > CGame::GetInstance()->GetBackBufferHeight())
+        {
+            isDeleted = true;
+        }
+    }
+    else
+    {
+        if (target == nullptr)
+        {
+            for (size_t i = 0; i < coObjects->size(); i++)
+            {
+                LPGAMEOBJECT obj = coObjects->at(i);
+                if (obj != nullptr)
+                {
+                    if (dynamic_cast<CMario*>(obj))
+                        target = dynamic_cast<CMario*>(obj);
+                    else if (dynamic_cast<CRaccoonMario*>(obj))
+                        target = dynamic_cast<CRaccoonMario*>(obj);
+                    break;
+                }
+            }
+        }
+
+        isOnPlatform = false;
         for (size_t i = 0; i < coObjects->size(); i++)
         {
             LPGAMEOBJECT obj = coObjects->at(i);
-            if (obj != nullptr && dynamic_cast<CMario*>(obj))
+            if (obj == nullptr || obj == this)
+                continue;
+
+            if (obj->IsBlocking())
             {
-                if (dynamic_cast<CMario*>(obj))
-                    target = dynamic_cast<CMario*>(obj);
-				else if (dynamic_cast<CRaccoonMario*>(obj))
-					target = dynamic_cast<CRaccoonMario*>(obj);
-				break;
-            }
-        }
-    }
+                float objLeft, objTop, objRight, objBottom;
+                obj->GetBoundingBox(objLeft, objTop, objRight, objBottom);
 
-    isOnPlatform = false;
-    for (size_t i = 0; i < coObjects->size(); i++)
-    {
-        LPGAMEOBJECT obj = coObjects->at(i);
-        if (obj == nullptr || obj == this)
-            continue;
+                float leftEdge, topEdge, rightEdge, bottomEdge;
+                GetBoundingBox(leftEdge, topEdge, rightEdge, bottomEdge);
 
-        if (obj->IsBlocking())
-        {
-            float objLeft, objTop, objRight, objBottom;
-            obj->GetBoundingBox(objLeft, objTop, objRight, objBottom);
-
-            float leftEdge, topEdge, rightEdge, bottomEdge;
-            GetBoundingBox(leftEdge, topEdge, rightEdge, bottomEdge);
-
-            if (bottomEdge >= objTop - 4 && bottomEdge <= objTop + 4 &&
-                rightEdge > objLeft && leftEdge < objRight)
-            {
-                isOnPlatform = true;
-                vy = 0;
-                y = objTop - (state == RED_PARAGOOMBA_STATE_HOPPING ? RED_PARAGOOMBA_BBOX_HEIGHT_FLY : RED_PARAGOOMBA_BBOX_HEIGHT) / 2;
-                break;
-            }
-        }
-    }
-
-    if (isOnPlatform)
-    {
-        if (state == RED_PARAGOOMBA_STATE_WALKING)
-        {
-            if (GetTickCount64() - rest_start > RED_PARAGOOMBA_REST_TIMEOUT)
-            {
-                SetState(RED_PARAGOOMBA_STATE_HOPPING);
-            }
-        }
-        else if (state == RED_PARAGOOMBA_STATE_HOPPING)
-        {
-            if (GetTickCount64() - hop_start > RED_PARAGOOMBA_HOP_TIMEOUT)
-            {
-                if (jumpCount < 2)
+                if (bottomEdge >= objTop - 4 && bottomEdge <= objTop + 4 &&
+                    rightEdge > objLeft && leftEdge < objRight)
                 {
-                    vy = RED_PARAGOOMBA_LOW_JUMP_SPEED;
-                    jumpCount++;
+                    isOnPlatform = true;
+                    vy = 0;
+                    y = objTop - (state == RED_PARAGOOMBA_STATE_HOPPING ? RED_PARAGOOMBA_BBOX_HEIGHT_FLY : RED_PARAGOOMBA_BBOX_HEIGHT) / 2;
+                    break;
+                }
+            }
+        }
+        CCollision::GetInstance()->Process(this, dt, coObjects);
+        if (isOnPlatform)
+        {
+            if (isHighJumping && target != nullptr)
+            {
+                float marioX, marioY;
+                target->GetPosition(marioX, marioY);
+                nx = (marioX > x) ? 1 : -1;
+                vx = nx * RED_PARAGOOMBA_WALKING_SPEED;
+                isHighJumping = false;
+            }
+
+            if (state == RED_PARAGOOMBA_STATE_WALKING)
+            {
+                if (GetTickCount64() - rest_start > RED_PARAGOOMBA_REST_TIMEOUT)
+                {
                     SetState(RED_PARAGOOMBA_STATE_HOPPING);
                 }
-                else
+            }
+            else if (state == RED_PARAGOOMBA_STATE_HOPPING)
+            {
+                if (GetTickCount64() - hop_start > RED_PARAGOOMBA_HOP_TIMEOUT)
                 {
-                    vy = RED_PARAGOOMBA_HIGH_JUMP_SPEED;
-                    jumpCount = 0;
-                    SetState(RED_PARAGOOMBA_STATE_WALKING);
+                    if (jumpCount < 2)
+                    {
+                        vy = RED_PARAGOOMBA_LOW_JUMP_SPEED;
+                        jumpCount++;
+                        SetState(RED_PARAGOOMBA_STATE_HOPPING);
+                    }
+                    else
+                    {
+                        vy = RED_PARAGOOMBA_HIGH_JUMP_SPEED;
+                        jumpCount = 0;
+                        isHighJumping = true;
+                        SetState(RED_PARAGOOMBA_STATE_WALKING);
+                    }
                 }
-                SetState(RED_PARAGOOMBA_STATE_HOPPING);
             }
         }
     }
@@ -148,16 +169,7 @@ void RedParaGoomba::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
     x += vx * dt;
     y += vy * dt;
 
-    if (x <= 0 || x >= CGame::GetInstance()->GetBackBufferWidth())
-    {
-        if (jumpCount == 0)
-        {
-            nx = -nx;
-            vx = nx * RED_PARAGOOMBA_WALKING_SPEED;
-        }
-    }
 
-    CCollision::GetInstance()->Process(this, dt, coObjects);
 }
 
 void RedParaGoomba::Render()
@@ -170,7 +182,7 @@ void RedParaGoomba::Render()
     {
         aniId = ID_ANI_RED_PARAGOOMBA_FLY;
     }
-    else if (state == RED_PARAGOOMBA_STATE_DIE)
+    else if (state == RED_PARAGOOMBA_STATE_DIE || state == RED_PARAGOOMBA_STATE_HEADSHOT)
     {
         aniId = ID_ANI_RED_PARAGOOMBA_DIE;
     }
@@ -181,7 +193,7 @@ void RedParaGoomba::Render()
         ani->Render(x, y);
     }
 
-    RenderBoundingBox();
+   // RenderBoundingBox();
 }
 
 void RedParaGoomba::SetState(int state)
@@ -196,22 +208,24 @@ void RedParaGoomba::SetState(int state)
         vy = 0;
         ay = 0;
         jumpCount = 0;
+        isHighJumping = false;
         break;
     case RED_PARAGOOMBA_STATE_WALKING:
         rest_start = GetTickCount64();
         ay = RED_PARAGOOMBA_GRAVITY;
         ax = 0;
-        if (target != nullptr)
-        {
-            float marioX, marioY;
-            target->GetPosition(marioX, marioY);
-            nx = (marioX > x) ? 1 : -1;
-            vx = nx * RED_PARAGOOMBA_WALKING_SPEED;
-        }
         break;
     case RED_PARAGOOMBA_STATE_HOPPING:
         hop_start = GetTickCount64();
         ay = RED_PARAGOOMBA_GRAVITY;
+        break;
+    case RED_PARAGOOMBA_STATE_HEADSHOT:
+        die_start = GetTickCount64();
+        y += (RED_PARAGOOMBA_BBOX_HEIGHT - RED_PARAGOOMBA_BBOX_HEIGHT_DIE) / 2;
+        vy = -HEADSHOT_JUMP_SPEED;
+        ay = RED_PARAGOOMBA_GRAVITY;
+        jumpCount = 0;
+        isHighJumping = false;
         break;
     }
 }
