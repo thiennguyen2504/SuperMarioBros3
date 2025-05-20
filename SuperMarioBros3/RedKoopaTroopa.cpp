@@ -124,12 +124,12 @@ void RedKoopaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
                 if (bottomEdge >= objTop - 8 && bottomEdge <= objTop + 8)
                 {
-                    if (direction == 1 && rightEdge + 1 >= objLeft && rightEdge <= objRight)
+                    if (direction == 1 && rightEdge >= objLeft && rightEdge <= objRight)
                     {
                         edgeOnPlatform = true;
                         break;
                     }
-                    else if (direction == -1 && leftEdge - 1 <= objRight && leftEdge >= objLeft)
+                    else if (direction == -1 && leftEdge <= objRight && leftEdge >= objLeft)
                     {
                         edgeOnPlatform = true;
                         break;

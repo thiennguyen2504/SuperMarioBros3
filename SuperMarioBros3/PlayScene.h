@@ -31,7 +31,7 @@ protected:
 	LPGAMEOBJECT player;
 	vector<LPGAMEOBJECT> objects;
 	vector<LPGAMEOBJECT> newObjects;
-	LPHUD hud;
+	//lLPHUD hud;
 
 	void _ParseSection_SPRITES(string line);
 	void _ParseSection_ANIMATIONS(string line);

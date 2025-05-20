@@ -318,8 +318,8 @@ void CPlayScene::Load()
 
     f.close();
 
-    float hudX = CGame::GetInstance()->GetBackBufferWidth() / 2.0f;
-    hud = new CHUD(hudX, 0.0f);
+    //float hudX = CGame::GetInstance()->GetBackBufferWidth() / 2.0f;
+    //hud = new CHUD(hudX, 0.0f);
 
     DebugOut(L"[INFO] Done loading scene  %s\n", sceneFilePath);
 }
@@ -379,9 +379,9 @@ void CPlayScene::Render()
     float backBufferWidth = game->GetBackBufferWidth();
     float backBufferHeight = game->GetBackBufferHeight();
 
-    game->SetViewport(GAME_MARGIN, GAME_MARGIN,
-        backBufferWidth - 2 * GAME_MARGIN,
-        backBufferHeight - 2 * GAME_MARGIN - HUD_HEIGHT);
+    //game->SetViewport(GAME_MARGIN, GAME_MARGIN,
+    //    backBufferWidth - 2 * GAME_MARGIN,
+    //    backBufferHeight - 2 * GAME_MARGIN - HUD_HEIGHT);
 
     d3dDevice->ClearRenderTargetView(renderTargetView, BACKGROUND_COLOR);
 
@@ -423,14 +423,11 @@ void CPlayScene::Render()
 
     game->SetViewport(0, 0, backBufferWidth, backBufferHeight);
 
-    if (hud != nullptr)
-    {
-        hud->Render();
-    }
-    else
-    {
-        DebugOut(L"[WARNING] HUD is nullptr in Render!\n");
-    }
+    //if (hud != nullptr)
+    //{
+    //    hud->Render();
+    //}
+
 }
 
 void CPlayScene::Clear()
@@ -456,11 +453,11 @@ void CPlayScene::Unload()
         }
     }
 
-    if (hud != nullptr)
-    {
-        delete hud;
-        hud = nullptr;
-    }
+    //if (hud != nullptr)
+    //{
+    //    delete hud;
+    //    hud = nullptr;
+    //}
 
     objects.clear();
     player = NULL;

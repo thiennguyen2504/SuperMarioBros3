@@ -23,7 +23,7 @@ protected:
     int spriteIdLeftDown, spriteIdLeftUp, spriteIdRightDown, spriteIdRightUp;
     bool isFacingRight;
     bool isMarioAbove;
-    bool hasFired; // Theo dõi trạng thái bắn
+    bool hasFired; 
     int state;
     ULONGLONG moveTimer;
     ULONGLONG waitTimer;

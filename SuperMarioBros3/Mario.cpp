@@ -145,21 +145,18 @@ void CMario::OnCollisionWithVenusFire(LPCOLLISIONEVENT e)
 {
     VenusFire* venusFire = dynamic_cast<VenusFire*>(e->obj);
 
-    if (e->ny >= 0)
-    {
-        if (untouchable == 0)
-        {
-            if (level > MARIO_LEVEL_SMALL)
-            {
-                level = MARIO_LEVEL_SMALL;
-                StartUntouchable();
-            }
-            else
-            {
-                SetState(MARIO_STATE_DIE);
-            }
-        }
-    }
+	if (untouchable == 0 && venusFire->GetState() != VENUS_FIRE_STATE_HIDDEN)
+	{
+		if (level > MARIO_LEVEL_SMALL)
+		{
+			level = MARIO_LEVEL_SMALL;
+			StartUntouchable();
+		}
+		else
+		{
+			SetState(MARIO_STATE_DIE);
+		}
+	}
 }
 
 void CMario::OnCollisionWithFireball(LPCOLLISIONEVENT e)
@@ -714,7 +711,7 @@ void CMario::SetLevel(int l)
         blinkStart = GetTickCount64();
         originalX = x; 
         originalY = y; 
-
+            
         if (level == MARIO_LEVEL_SMALL && l == MARIO_LEVEL_BIG && isOnPlatform)
         {
             y -= 8.0f; 
