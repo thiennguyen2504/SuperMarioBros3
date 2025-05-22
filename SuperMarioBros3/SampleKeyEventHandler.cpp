@@ -4,6 +4,7 @@
 #include "Game.h"
 
 #include "Mario.h"
+#include "KoopaTroopa.h"
 #include "PlayScene.h"
 
 void CSampleKeyHandler::OnKeyDown(int KeyCode)
@@ -49,8 +50,8 @@ void CSampleKeyHandler::OnKeyUp(int KeyCode)
 	case DIK_A:
 		if (mario->IsHolding())
 		{
-			RedKoopaTroopa* koopa = mario->GetHeldKoopa();
-			koopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
+			KoopaTroopa* koopa = mario->GetHeldKoopa();
+			koopa->SetState(KOOPA_STATE_SHELL_RUNNING);
 			koopa->SetDirection(mario->GetDirection());
 			mario->SetHeldKoopa(nullptr);
 		}

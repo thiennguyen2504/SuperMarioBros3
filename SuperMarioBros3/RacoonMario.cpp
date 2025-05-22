@@ -2,7 +2,7 @@
 #include "Goomba.h"
 #include "VenusFire.h"
 #include "Fireball.h"
-#include "RedKoopaTroopa.h"
+#include "KoopaTroopa.h"
 #include "RedParaGoomba.h"
 #include "Mushroom.h"
 #include "Leaf.h"
@@ -115,8 +115,8 @@ void CRaccoonMario::OnCollisionWith(LPCOLLISIONEVENT e)
 		OnCollisionWithVenusFire(e);
 	else if (dynamic_cast<Fireball*>(e->obj))
 		OnCollisionWithFireball(e);
-	else if (dynamic_cast<RedKoopaTroopa*>(e->obj))
-		OnCollisionWithRedKoopaTroopa(e);
+	else if (dynamic_cast<KoopaTroopa*>(e->obj))
+		OnCollisionWithKoopaTroopa(e);
 	else if (dynamic_cast<RedParaGoomba*>(e->obj))
 		OnCollisionWithRedParaGoomba(e);
 	else if (dynamic_cast<CMushroom*>(e->obj))
@@ -167,46 +167,46 @@ void CRaccoonMario::OnCollisionWithFireball(LPCOLLISIONEVENT e)
 	}
 }
 
-void CRaccoonMario::OnCollisionWithRedKoopaTroopa(LPCOLLISIONEVENT e)
+void CRaccoonMario::OnCollisionWithKoopaTroopa(LPCOLLISIONEVENT e)
 {
-	RedKoopaTroopa* koopa = dynamic_cast<RedKoopaTroopa*>(e->obj);
+	KoopaTroopa* koopa = dynamic_cast<KoopaTroopa*>(e->obj);
 
 	if (e->ny < 0)
 	{
-		if (koopa->GetState() == RED_KOOPA_STATE_WALKING)
+		if (koopa->GetState() == KOOPA_STATE_WALKING)
 		{
-			koopa->SetState(RED_KOOPA_STATE_SHELL_IDLE);
+			koopa->SetState(KOOPA_STATE_SHELL_IDLE);
 			vy = -MARIO_JUMP_DEFLECT_SPEED;
 		}
-		else if (koopa->GetState() == RED_KOOPA_STATE_SHELL_RUNNING)
+		else if (koopa->GetState() == KOOPA_STATE_SHELL_RUNNING)
 		{
-			koopa->SetState(RED_KOOPA_STATE_SHELL_IDLE);
+			koopa->SetState(KOOPA_STATE_SHELL_IDLE);
 			vy = -MARIO_JUMP_DEFLECT_SPEED;
 		}
 	}
 	else if (e->nx != 0)
 	{
-		if (koopa->GetState() == RED_KOOPA_STATE_WALKING ||
-			(koopa->GetState() == RED_KOOPA_STATE_SHELL_RUNNING && !koopa->IsKickCooldownActive()))
+		if (koopa->GetState() == KOOPA_STATE_WALKING ||
+			(koopa->GetState() == KOOPA_STATE_SHELL_RUNNING && !koopa->IsKickCooldownActive()))
 		{
 			if (untouchable == 0)
 			{
 				OnHit();
 			}
 		}
-		else if (koopa->GetState() == RED_KOOPA_STATE_SHELL_IDLE)
+		else if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE)
 		{
 			if (IsKeyDown(DIK_A))
 			{
 				if (!isHolding)
 				{
-					koopa->SetState(RED_KOOPA_STATE_CARRIED);
+					koopa->SetState(KOOPA_STATE_CARRIED);
 					SetHeldKoopa(koopa);
 				}
 			}
 			else if (!isHolding)
 			{
-				koopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
+				koopa->SetState(KOOPA_STATE_SHELL_RUNNING);
 				koopa->SetDirection(nx);
 			}
 		}
@@ -242,8 +242,6 @@ void CRaccoonMario::OnCollisionWithPortal(LPCOLLISIONEVENT e)
 	CPortal* p = (CPortal*)e->obj;
 	CGame::GetInstance()->InitiateSwitchScene(p->GetSceneId());
 }
-
-
 
 void CRaccoonMario::OnHitByKoopa()
 {

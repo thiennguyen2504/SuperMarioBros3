@@ -19,7 +19,6 @@
 #define ID_ANI_RACCOON_MARIO_APPEAR 1914
 #pragma endregion
 
-
 class CRaccoonMario : public CMario
 {
 protected:
@@ -35,9 +34,9 @@ public:
     virtual void OnCollisionWithGoomba(LPCOLLISIONEVENT e) override;
     virtual void OnCollisionWithVenusFire(LPCOLLISIONEVENT e) override;
     virtual void OnCollisionWithFireball(LPCOLLISIONEVENT e) override;
-    virtual void OnCollisionWithRedKoopaTroopa(LPCOLLISIONEVENT e) override;
+    virtual void OnCollisionWithKoopaTroopa(LPCOLLISIONEVENT e) override;
     virtual void OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e) override;
-	virtual void OnCollisionWithPortal(LPCOLLISIONEVENT e) override;
+    virtual void OnCollisionWithPortal(LPCOLLISIONEVENT e) override;
     virtual void OnHitByKoopa() override;
     virtual void Render() override;
     virtual void GetBoundingBox(float& left, float& top, float& right, float& bottom) override;

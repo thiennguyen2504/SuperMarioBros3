@@ -146,6 +146,7 @@
     <ClCompile Include="Grass.cpp" />
     <ClCompile Include="GreenKoopaTroopa.cpp" />
     <ClCompile Include="HUD.cpp" />
+    <ClCompile Include="KoopaTroopa.cpp" />
     <ClCompile Include="Leaf.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MapObjects.cpp" />
@@ -186,6 +187,7 @@
     <ClInclude Include="GreenKoopaTroopa.h" />
     <ClInclude Include="HUD.h" />
     <ClInclude Include="KeyEventHandler.h" />
+    <ClInclude Include="KoopaTroopa.h" />
     <ClInclude Include="Leaf.h" />
     <ClInclude Include="MapObjects.h" />
     <ClInclude Include="Mario.h" />

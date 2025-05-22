@@ -6,8 +6,7 @@
 #include "Portal.h"
 #include "VenusFire.h"
 #include "Fireball.h"
-#include "RedKoopaTroopa.h"
-#include "GreenKoopaTroopa.h"
+#include "KoopaTroopa.h"
 #include "RedParaGoomba.h"
 #include "Mushroom.h"
 #include "Leaf.h"
@@ -88,10 +87,8 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
         OnCollisionWithVenusFire(e);
     else if (dynamic_cast<Fireball*>(e->obj))
         OnCollisionWithFireball(e);
-    else if (dynamic_cast<RedKoopaTroopa*>(e->obj))
-        OnCollisionWithRedKoopaTroopa(e);
-    else if (dynamic_cast<GreenKoopaTroopa*>(e->obj))
-        OnCollisionWithGreenKoopaTroopa(e);
+    else if (dynamic_cast<KoopaTroopa*>(e->obj))
+        OnCollisionWithKoopaTroopa(e);
     else if (dynamic_cast<RedParaGoomba*>(e->obj))
         OnCollisionWithRedParaGoomba(e);
     else if (dynamic_cast<CMushroom*>(e->obj))
@@ -181,29 +178,29 @@ void CMario::OnCollisionWithFireball(LPCOLLISIONEVENT e)
     }
 }
 
-void CMario::OnCollisionWithRedKoopaTroopa(LPCOLLISIONEVENT e)
+void CMario::OnCollisionWithKoopaTroopa(LPCOLLISIONEVENT e)
 {
-    RedKoopaTroopa* koopa = dynamic_cast<RedKoopaTroopa*>(e->obj);
+    KoopaTroopa* koopa = dynamic_cast<KoopaTroopa*>(e->obj);
 
     if (e->ny < 0)
     {
-        if (koopa->GetState() == RED_KOOPA_STATE_WALKING)
+        if (koopa->GetState() == KOOPA_STATE_WALKING)
         {
-            koopa->SetState(RED_KOOPA_STATE_SHELL_IDLE);
+            koopa->SetState(KOOPA_STATE_SHELL_IDLE);
             vy = -MARIO_JUMP_DEFLECT_SPEED;
         }
-        else if (koopa->GetState() == RED_KOOPA_STATE_SHELL_RUNNING)
+        else if (koopa->GetState() == KOOPA_STATE_SHELL_RUNNING)
         {
-            koopa->SetState(RED_KOOPA_STATE_SHELL_IDLE);
+            koopa->SetState(KOOPA_STATE_SHELL_IDLE);
             vy = -MARIO_JUMP_DEFLECT_SPEED;
         }
-        else if (koopa->GetState() == RED_KOOPA_STATE_SHELL_IDLE && !koopa->IsIdleCooldownActive())
+        else if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE && !koopa->IsIdleCooldownActive())
         {
             if (IsKeyDown(DIK_A))
             {
                 if (!isHolding)
                 {
-                    koopa->SetState(RED_KOOPA_STATE_CARRIED);
+                    koopa->SetState(KOOPA_STATE_CARRIED);
                     SetHeldKoopa(koopa);
                 }
             }
@@ -212,15 +209,15 @@ void CMario::OnCollisionWithRedKoopaTroopa(LPCOLLISIONEVENT e)
                 float koopaX, koopaY;
                 koopa->GetPosition(koopaX, koopaY);
                 koopa->SetDirection(x > koopaX ? -1 : 1);
-                koopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
+                koopa->SetState(KOOPA_STATE_SHELL_RUNNING);
                 vy = -MARIO_JUMP_DEFLECT_SPEED;
             }
         }
     }
     else
     {
-        if (koopa->GetState() == RED_KOOPA_STATE_WALKING ||
-            (koopa->GetState() == RED_KOOPA_STATE_SHELL_RUNNING && !koopa->IsKickCooldownActive()))
+        if (koopa->GetState() == KOOPA_STATE_WALKING ||
+            (koopa->GetState() == KOOPA_STATE_SHELL_RUNNING && !koopa->IsKickCooldownActive()))
         {
             if (untouchable == 0)
             {
@@ -235,13 +232,13 @@ void CMario::OnCollisionWithRedKoopaTroopa(LPCOLLISIONEVENT e)
                 }
             }
         }
-        else if (koopa->GetState() == RED_KOOPA_STATE_SHELL_IDLE && !koopa->IsIdleCooldownActive())
+        else if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE && !koopa->IsIdleCooldownActive())
         {
             if (IsKeyDown(DIK_A))
             {
                 if (!isHolding)
                 {
-                    koopa->SetState(RED_KOOPA_STATE_CARRIED);
+                    koopa->SetState(KOOPA_STATE_CARRIED);
                     SetHeldKoopa(koopa);
                 }
             }
@@ -250,82 +247,7 @@ void CMario::OnCollisionWithRedKoopaTroopa(LPCOLLISIONEVENT e)
                 float koopaX, koopaY;
                 koopa->GetPosition(koopaX, koopaY);
                 koopa->SetDirection(x > koopaX ? -1 : 1);
-                koopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
-            }
-        }
-    }
-}
-
-void CMario::OnCollisionWithGreenKoopaTroopa(LPCOLLISIONEVENT e)
-{
-    GreenKoopaTroopa* koopa = dynamic_cast<GreenKoopaTroopa*>(e->obj);
-
-    if (e->ny < 0)
-    {
-        if (koopa->GetState() == GREEN_KOOPA_STATE_WALKING)
-        {
-            koopa->SetState(GREEN_KOOPA_STATE_SHELL_IDLE);
-            vy = -MARIO_JUMP_DEFLECT_SPEED;
-        }
-        else if (koopa->GetState() == GREEN_KOOPA_STATE_SHELL_RUNNING)
-        {
-            koopa->SetState(GREEN_KOOPA_STATE_SHELL_IDLE);
-            vy = -MARIO_JUMP_DEFLECT_SPEED;
-        }
-        else if (koopa->GetState() == GREEN_KOOPA_STATE_SHELL_IDLE && !koopa->IsIdleCooldownActive())
-        {
-            if (IsKeyDown(DIK_A))
-            {
-                if (!isHolding)
-                {
-                    koopa->SetState(GREEN_KOOPA_STATE_CARRIED);
-                    SetHeldKoopa(koopa);
-                }
-            }
-            else
-            {
-                float koopaX, koopaY;
-                koopa->GetPosition(koopaX, koopaY);
-                koopa->SetDirection(x > koopaX ? -1 : 1);
-                koopa->SetState(GREEN_KOOPA_STATE_SHELL_RUNNING);
-                vy = -MARIO_JUMP_DEFLECT_SPEED;
-            }
-        }
-    }
-    else
-    {
-        if (koopa->GetState() == GREEN_KOOPA_STATE_WALKING ||
-            (koopa->GetState() == GREEN_KOOPA_STATE_SHELL_RUNNING && !koopa->IsKickCooldownActive()))
-        {
-            if (untouchable == 0)
-            {
-                if (level > MARIO_LEVEL_SMALL)
-                {
-                    level = MARIO_LEVEL_SMALL;
-                    StartUntouchable();
-                }
-                else
-                {
-                    SetState(MARIO_STATE_DIE);
-                }
-            }
-        }
-        else if (koopa->GetState() == GREEN_KOOPA_STATE_SHELL_IDLE && !koopa->IsIdleCooldownActive())
-        {
-            if (IsKeyDown(DIK_A))
-            {
-                if (!isHolding)
-                {
-                    koopa->SetState(GREEN_KOOPA_STATE_CARRIED);
-                    SetHeldKoopa(koopa);
-                }
-            }
-            else
-            {
-                float koopaX, koopaY;
-                koopa->GetPosition(koopaX, koopaY);
-                koopa->SetDirection(x > koopaX ? -1 : 1);
-                koopa->SetState(GREEN_KOOPA_STATE_SHELL_RUNNING);
+                koopa->SetState(KOOPA_STATE_SHELL_RUNNING);
             }
         }
     }
@@ -667,7 +589,7 @@ void CMario::SetState(int state)
         isRunning = false;
         if (isHolding && heldKoopa && !IsKeyDown(DIK_A))
         {
-            heldKoopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
+            heldKoopa->SetState(KOOPA_STATE_SHELL_RUNNING);
             heldKoopa->SetDirection(nx);
             SetHeldKoopa(nullptr);
         }
@@ -680,7 +602,7 @@ void CMario::SetState(int state)
         isRunning = false;
         if (isHolding && heldKoopa && !IsKeyDown(DIK_A))
         {
-            heldKoopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
+            heldKoopa->SetState(KOOPA_STATE_SHELL_RUNNING);
             heldKoopa->SetDirection(nx);
             SetHeldKoopa(nullptr);
         }
@@ -721,7 +643,7 @@ void CMario::SetState(int state)
         isRunning = false;
         if (isHolding && heldKoopa && !IsKeyDown(DIK_A))
         {
-            heldKoopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
+            heldKoopa->SetState(KOOPA_STATE_SHELL_RUNNING);
             heldKoopa->SetDirection(nx);
             SetHeldKoopa(nullptr);
         }
@@ -732,7 +654,7 @@ void CMario::SetState(int state)
         ax = 0;
         if (isHolding && heldKoopa)
         {
-            heldKoopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
+            heldKoopa->SetState(KOOPA_STATE_SHELL_RUNNING);
             heldKoopa->SetDirection(nx);
             SetHeldKoopa(nullptr);
         }
@@ -802,7 +724,7 @@ void CMario::SetLevel(int l)
 
     if (isHolding && heldKoopa)
     {
-        heldKoopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
+        heldKoopa->SetState(KOOPA_STATE_SHELL_RUNNING);
         heldKoopa->SetDirection(nx);
         SetHeldKoopa(nullptr);
     }

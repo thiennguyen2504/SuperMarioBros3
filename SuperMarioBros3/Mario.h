@@ -111,9 +111,8 @@
 
 #define MARIO_APPEAR_TIME 200
 
-class RedKoopaTroopa;
+class KoopaTroopa;
 class RedParaGoomba;
-class GreenKoopaTroopa;
 
 class CMario : public CGameObject
 {
@@ -129,7 +128,7 @@ protected:
 	BOOLEAN isOnPlatform;
 	int coin;
 
-	RedKoopaTroopa* heldKoopa;
+	KoopaTroopa* heldKoopa;
 	BOOLEAN isHolding;
 	BOOLEAN isRunning;
 
@@ -147,9 +146,8 @@ protected:
 	virtual void OnCollisionWithPortal(LPCOLLISIONEVENT e);
 	virtual void OnCollisionWithVenusFire(LPCOLLISIONEVENT e);
 	virtual void OnCollisionWithFireball(LPCOLLISIONEVENT e);
-	virtual void OnCollisionWithRedKoopaTroopa(LPCOLLISIONEVENT e);
+	virtual void OnCollisionWithKoopaTroopa(LPCOLLISIONEVENT e);
 	virtual void OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e);
-	virtual void OnCollisionWithGreenKoopaTroopa(LPCOLLISIONEVENT e);
 	virtual void OnCollisionWithMushroom(LPCOLLISIONEVENT e);
 	virtual void OnCollisionWithLeaf(LPCOLLISIONEVENT e);
 	virtual int GetAniIdBig();
@@ -190,8 +188,8 @@ public:
 	BOOLEAN IsHolding() const { return isHolding; }
 	BOOLEAN IsRunning() const { return isRunning; }
 	void SetRunning(BOOLEAN running) { isRunning = running; }
-	RedKoopaTroopa* GetHeldKoopa() { return heldKoopa; }
-	void SetHeldKoopa(RedKoopaTroopa* koopa) { heldKoopa = koopa; isHolding = (koopa != nullptr); }
+	KoopaTroopa* GetHeldKoopa() { return heldKoopa; }
+	void SetHeldKoopa(KoopaTroopa* koopa) { heldKoopa = koopa; isHolding = (koopa != nullptr); }
 	int GetDirection() const { return nx; }
 	BOOLEAN IsKeyDown(int KeyCode) { return CGame::GetInstance()->IsKeyDown(KeyCode); }
 	int IsCollidable()
