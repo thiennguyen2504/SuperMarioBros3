@@ -8,9 +8,18 @@
 110005	50	96	65	111	40	# spr-red-koopa-troopa-shell-run-1
 110006	71	96	86	111	40	# spr-red-koopa-troopa-shell-run-2
 
+110010	31	119	46	144	40	# spr-green-koopa-troopa-walk-left-0
+110011	50	118	65	144	40	# spr-green-koopa-troopa-walk-left-1
+110012	32	149	47	164	40	# spr-green-koopa-troopa-shell-idle
+110013	53	148	68	163	40	# spr-green-koopa-troopa-shell-run-1
+110014	74	148	89	163	40	# spr-green-koopa-troopa-shell-run-2
+
 # aniId	spriteId1 frameTime1	spriteId2 frameTime2	...
 [ANIMATIONS]
 200021	110000	100	110001	100
 200022	110002	100	110003	100
 200023	110004	100
 200024	110004	100	110005	100	110006	100
+200031	110010	100	110011	100
+200033	110012	100
+200034	110012	100	110013	100	110014	100

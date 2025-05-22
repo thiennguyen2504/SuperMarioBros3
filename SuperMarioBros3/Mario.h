@@ -113,6 +113,7 @@
 
 class RedKoopaTroopa;
 class RedParaGoomba;
+class GreenKoopaTroopa;
 
 class CMario : public CGameObject
 {
@@ -138,7 +139,7 @@ protected:
 
 	BOOLEAN isAppearing;
 	ULONGLONG appearStart;
-	float originalY; 
+	float originalY;
 	float originalX;
 
 	virtual void OnCollisionWithGoomba(LPCOLLISIONEVENT e);
@@ -148,6 +149,7 @@ protected:
 	virtual void OnCollisionWithFireball(LPCOLLISIONEVENT e);
 	virtual void OnCollisionWithRedKoopaTroopa(LPCOLLISIONEVENT e);
 	virtual void OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e);
+	virtual void OnCollisionWithGreenKoopaTroopa(LPCOLLISIONEVENT e);
 	virtual void OnCollisionWithMushroom(LPCOLLISIONEVENT e);
 	virtual void OnCollisionWithLeaf(LPCOLLISIONEVENT e);
 	virtual int GetAniIdBig();

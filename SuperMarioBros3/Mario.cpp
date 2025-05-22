@@ -7,6 +7,7 @@
 #include "VenusFire.h"
 #include "Fireball.h"
 #include "RedKoopaTroopa.h"
+#include "GreenKoopaTroopa.h"
 #include "RedParaGoomba.h"
 #include "Mushroom.h"
 #include "Leaf.h"
@@ -16,7 +17,7 @@
 
 void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
-    if (!isAppearing && !isBlinking) 
+    if (!isAppearing && !isBlinking)
     {
         vy += ay * dt;
         vx += ax * dt;
@@ -57,7 +58,7 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
 void CMario::OnNoCollision(DWORD dt)
 {
-    if (!isAppearing && !isBlinking) // Ngăn cập nhật vị trí khi nhấp nháy
+    if (!isAppearing && !isBlinking)
     {
         x += vx * dt;
         y += vy * dt;
@@ -89,6 +90,8 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
         OnCollisionWithFireball(e);
     else if (dynamic_cast<RedKoopaTroopa*>(e->obj))
         OnCollisionWithRedKoopaTroopa(e);
+    else if (dynamic_cast<GreenKoopaTroopa*>(e->obj))
+        OnCollisionWithGreenKoopaTroopa(e);
     else if (dynamic_cast<RedParaGoomba*>(e->obj))
         OnCollisionWithRedParaGoomba(e);
     else if (dynamic_cast<CMushroom*>(e->obj))
@@ -145,18 +148,18 @@ void CMario::OnCollisionWithVenusFire(LPCOLLISIONEVENT e)
 {
     VenusFire* venusFire = dynamic_cast<VenusFire*>(e->obj);
 
-	if (untouchable == 0 && venusFire->GetState() != VENUS_FIRE_STATE_HIDDEN)
-	{
-		if (level > MARIO_LEVEL_SMALL)
-		{
-			level = MARIO_LEVEL_SMALL;
-			StartUntouchable();
-		}
-		else
-		{
-			SetState(MARIO_STATE_DIE);
-		}
-	}
+    if (untouchable == 0 && venusFire->GetState() != VENUS_FIRE_STATE_HIDDEN)
+    {
+        if (level > MARIO_LEVEL_SMALL)
+        {
+            level = MARIO_LEVEL_SMALL;
+            StartUntouchable();
+        }
+        else
+        {
+            SetState(MARIO_STATE_DIE);
+        }
+    }
 }
 
 void CMario::OnCollisionWithFireball(LPCOLLISIONEVENT e)
@@ -248,6 +251,81 @@ void CMario::OnCollisionWithRedKoopaTroopa(LPCOLLISIONEVENT e)
                 koopa->GetPosition(koopaX, koopaY);
                 koopa->SetDirection(x > koopaX ? -1 : 1);
                 koopa->SetState(RED_KOOPA_STATE_SHELL_RUNNING);
+            }
+        }
+    }
+}
+
+void CMario::OnCollisionWithGreenKoopaTroopa(LPCOLLISIONEVENT e)
+{
+    GreenKoopaTroopa* koopa = dynamic_cast<GreenKoopaTroopa*>(e->obj);
+
+    if (e->ny < 0)
+    {
+        if (koopa->GetState() == GREEN_KOOPA_STATE_WALKING)
+        {
+            koopa->SetState(GREEN_KOOPA_STATE_SHELL_IDLE);
+            vy = -MARIO_JUMP_DEFLECT_SPEED;
+        }
+        else if (koopa->GetState() == GREEN_KOOPA_STATE_SHELL_RUNNING)
+        {
+            koopa->SetState(GREEN_KOOPA_STATE_SHELL_IDLE);
+            vy = -MARIO_JUMP_DEFLECT_SPEED;
+        }
+        else if (koopa->GetState() == GREEN_KOOPA_STATE_SHELL_IDLE && !koopa->IsIdleCooldownActive())
+        {
+            if (IsKeyDown(DIK_A))
+            {
+                if (!isHolding)
+                {
+                    koopa->SetState(GREEN_KOOPA_STATE_CARRIED);
+                    SetHeldKoopa(koopa);
+                }
+            }
+            else
+            {
+                float koopaX, koopaY;
+                koopa->GetPosition(koopaX, koopaY);
+                koopa->SetDirection(x > koopaX ? -1 : 1);
+                koopa->SetState(GREEN_KOOPA_STATE_SHELL_RUNNING);
+                vy = -MARIO_JUMP_DEFLECT_SPEED;
+            }
+        }
+    }
+    else
+    {
+        if (koopa->GetState() == GREEN_KOOPA_STATE_WALKING ||
+            (koopa->GetState() == GREEN_KOOPA_STATE_SHELL_RUNNING && !koopa->IsKickCooldownActive()))
+        {
+            if (untouchable == 0)
+            {
+                if (level > MARIO_LEVEL_SMALL)
+                {
+                    level = MARIO_LEVEL_SMALL;
+                    StartUntouchable();
+                }
+                else
+                {
+                    SetState(MARIO_STATE_DIE);
+                }
+            }
+        }
+        else if (koopa->GetState() == GREEN_KOOPA_STATE_SHELL_IDLE && !koopa->IsIdleCooldownActive())
+        {
+            if (IsKeyDown(DIK_A))
+            {
+                if (!isHolding)
+                {
+                    koopa->SetState(GREEN_KOOPA_STATE_CARRIED);
+                    SetHeldKoopa(koopa);
+                }
+            }
+            else
+            {
+                float koopaX, koopaY;
+                koopa->GetPosition(koopaX, koopaY);
+                koopa->SetDirection(x > koopaX ? -1 : 1);
+                koopa->SetState(GREEN_KOOPA_STATE_SHELL_RUNNING);
             }
         }
     }
@@ -709,12 +787,12 @@ void CMario::SetLevel(int l)
         isBlinking = true;
         isLocked = true;
         blinkStart = GetTickCount64();
-        originalX = x; 
-        originalY = y; 
-            
+        originalX = x;
+        originalY = y;
+
         if (level == MARIO_LEVEL_SMALL && l == MARIO_LEVEL_BIG && isOnPlatform)
         {
-            y -= 8.0f; 
+            y -= 8.0f;
         }
 
         vx = 0.0f;
