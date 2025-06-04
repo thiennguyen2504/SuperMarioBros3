@@ -101,3 +101,19 @@ void CSprite::DrawWithScaleY(float x, float y, float scale_y, float scale_x)
 
     g->GetSpriteHandler()->DrawSpritesImmediate(&sprite, 1, 0, 0);
 }
+
+void CSprite::DrawStatic(float x, float y)
+{
+    CGame* g = CGame::GetInstance();
+    D3DXMATRIX matTranslation;
+
+    x = (FLOAT)floor(x);
+    y = (FLOAT)floor(y);
+
+    // Draw sprite at fixed position relative to the game window, ignoring camera
+    D3DXMatrixTranslation(&matTranslation, x, g->GetBackBufferHeight() - y, 0.1f);
+
+    this->sprite.matWorld = (this->matScaling * matTranslation);
+
+    g->GetSpriteHandler()->DrawSpritesImmediate(&sprite, 1, 0, 0);
+}

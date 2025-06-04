@@ -21,6 +21,7 @@ public:
     void Draw(float x, float y);
     void DrawWithScale(float x, float y, float scale);
     void DrawWithScaleY(float x, float y, float scale_y, float scale_x);
+    void DrawStatic(float x, float y);
 
     // Getters for sprite coordinates
     int GetBottom() const { return bottom; }
