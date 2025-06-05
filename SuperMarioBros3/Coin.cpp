@@ -1,5 +1,8 @@
 #include "Coin.h"
 #include "Collision.h"
+#include "PlayScene.h"
+#include "Effect.h"
+#include "debug.h"
 
 CCoin::CCoin(float x, float y, BOOLEAN fromQuestionBlock) : CGameObject(x, y)
 {
@@ -7,6 +10,8 @@ CCoin::CCoin(float x, float y, BOOLEAN fromQuestionBlock) : CGameObject(x, y)
     vy = isFromQuestionBlock ? COIN_BOUNCE_SPEED : 0.0f;
     ay = isFromQuestionBlock ? COIN_GRAVITY : 0.0f;
     spawnTime = isFromQuestionBlock ? GetTickCount64() : 0;
+    startX = x; // L?u v? trí ban ??u
+    startY = y;
     SetState(COIN_STATE_ACTIVE);
 }
 
@@ -20,6 +25,7 @@ void CCoin::Render()
 void CCoin::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
     if (isDeleted) return;
+    CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
 
     if (isFromQuestionBlock)
     {
@@ -27,7 +33,10 @@ void CCoin::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
         if (GetTickCount64() - spawnTime > COIN_LIFETIME)
         {
+            DebugOut(L"[DEBUG] Coin at (%f, %f), creating effect at (%f, %f)\n", x, y, x, y);
             isDeleted = true;
+            CEffect* effect = new CEffect(x, y, 100); // Dùng x, y hi?n t?i
+            scene->AddObject(effect);
             return;
         }
     }
@@ -56,7 +65,7 @@ void CCoin::OnCollisionWith(LPCOLLISIONEVENT e)
 {
     if (isFromQuestionBlock && e->obj->IsBlocking())
     {
-        if (e->ny < 0) 
+        if (e->ny < 0)
         {
             vy = 0;
         }

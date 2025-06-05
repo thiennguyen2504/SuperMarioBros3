@@ -381,6 +381,7 @@ void CPlayScene::Render()
 
     d3dDevice->ClearRenderTargetView(renderTargetView, BACKGROUND_COLOR);
 
+    // Render background objects
     for (int i = 0; i < objects.size(); i++)
     {
         if (objects[i] &&
@@ -390,34 +391,61 @@ void CPlayScene::Render()
             !dynamic_cast<CQuestionBlock*>(objects[i]) &&
             !dynamic_cast<CPipe*>(objects[i]) &&
             !dynamic_cast<CBrick*>(objects[i]) &&
+            !dynamic_cast<CEffect*>(objects[i]) &&
             !objects[i]->IsDeleted())
         {
             objects[i]->Render();
         }
     }
+
+    // Render midground objects (Mushroom, Leaf, Pipe)
     for (int i = 0; i < objects.size(); i++)
     {
-        if (objects[i] && (dynamic_cast<CMushroom*>(objects[i]) || dynamic_cast<CLeaf*>(objects[i]) || dynamic_cast<CPipe*>(objects[i])) && !objects[i]->IsDeleted())
-        {
-            objects[i]->Render();
-        }
-    }
-    for (int i = 0; i < objects.size(); i++)
-    {
-        if (objects[i] && dynamic_cast<CQuestionBlock*>(objects[i]) || dynamic_cast<CBrick*>(objects[i]) && !objects[i]->IsDeleted())
-        {
-            objects[i]->Render();
-        }
-    }
-    for (int i = 0; i < objects.size(); i++)
-    {
-        if (objects[i] && dynamic_cast<CMario*>(objects[i]) && !objects[i]->IsDeleted())
+        if (objects[i] &&
+            (dynamic_cast<CMushroom*>(objects[i]) ||
+                dynamic_cast<CLeaf*>(objects[i]) ||
+                dynamic_cast<CPipe*>(objects[i])) &&
+            !objects[i]->IsDeleted())
         {
             objects[i]->Render();
         }
     }
 
+    // Render foreground objects (QuestionBlock, Brick)
+    for (int i = 0; i < objects.size(); i++)
+    {
+        if (objects[i] &&
+            (dynamic_cast<CQuestionBlock*>(objects[i]) ||
+                dynamic_cast<CBrick*>(objects[i])) &&
+            !objects[i]->IsDeleted())
+        {
+            objects[i]->Render();
+        }
+    }
 
+    // Render Mario
+    for (int i = 0; i < objects.size(); i++)
+    {
+        if (objects[i] &&
+            dynamic_cast<CMario*>(objects[i]) &&
+            !objects[i]->IsDeleted())
+        {
+            objects[i]->Render();
+        }
+    }
+
+    // Render effects (CEffect) last to avoid being obscured
+    for (int i = 0; i < objects.size(); i++)
+    {
+        if (objects[i] &&
+            dynamic_cast<CEffect*>(objects[i]) &&
+            !objects[i]->IsDeleted())
+        {
+            objects[i]->Render();
+        }
+    }
+
+    // Render black overlay
     LPSPRITE blackSprite = CSprites::GetInstance()->Get(ID_SPRITE_BLACK);
     if (blackSprite != nullptr)
     {

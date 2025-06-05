@@ -22,6 +22,7 @@ protected:
     float ay;
     ULONGLONG spawnTime;
     BOOLEAN isFromQuestionBlock;
+    float startX, startY; // V? trí ban ??u
 
 public:
     CCoin(float x, float y, BOOLEAN fromQuestionBlock = false);

@@ -61,8 +61,6 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
             ax = 0.0f;
         }
 
-        // Debug output to track variables
-        DebugOut(L"[DEBUG] vx=%f, ax=%f, nx=%d, isOnPlatform=%d, state=%d, runProgress=%f\n", vx, ax, nx, isOnPlatform, state, runProgress);
     }
 
     if (GetTickCount64() - untouchable_start > MARIO_UNTOUCHABLE_TIME)

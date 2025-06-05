@@ -20,6 +20,7 @@
 #include "QuestionBlock.h"
 #include "Leaf.h"
 #include "HUD.h"
+#include "Effect.h" // Thêm include cho CEffect
 
 #define GAME_MARGIN 10.0f
 #define HUD_HEIGHT 26.0f
@@ -50,6 +51,7 @@ public:
 
 	void SetPlayer(LPGAMEOBJECT player) { this->player = player; }
 	LPGAMEOBJECT GetPlayer() { return player; }
+	LPHUD GetHUD() { return hud; } 
 
 	void AddObject(LPGAMEOBJECT obj) { newObjects.push_back(obj); }
 

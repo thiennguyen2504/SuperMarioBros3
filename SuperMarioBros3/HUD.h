@@ -26,6 +26,7 @@ protected:
 public:
 	CHUD();
 	void Render();
+	void AddScore(int points) { score += points; } // Thêm ?i?m
 };
 
 typedef CHUD* LPHUD;

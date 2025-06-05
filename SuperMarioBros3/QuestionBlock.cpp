@@ -5,6 +5,7 @@
 #include "Mushroom.h"
 #include "Coin.h"
 #include "Leaf.h"
+#include "Effect.h"
 
 CQuestionBlock::CQuestionBlock(float x, float y, int blockType) : CGameObject(x, y)
 {
