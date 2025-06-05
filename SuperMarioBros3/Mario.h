@@ -5,17 +5,21 @@
 #include "Game.h"
 
 #define MARIO_WALKING_SPEED		0.05f
-#define MARIO_RUNNING_SPEED		0.11f
+#define MARIO_RUNNING_SPEED		0.15f // T?ng t? 0.13f ?? ch?y nhanh h?n
 
 #define MARIO_ACCEL_WALK_X	0.00025f
 #define MARIO_ACCEL_RUN_X	0.000385f
 
-#define MARIO_JUMP_SPEED_Y		0.352f
-#define MARIO_JUMP_RUN_SPEED_Y	0.423f
+#define MARIO_JUMP_SPEED_Y		0.35f // T?ng t? 0.32f ?? nh?y cao h?n
+#define MARIO_JUMP_RUN_SPEED_Y	0.41f // T?ng t? 0.38f ?? nh?y cao h?n khi ch?y
 
 #define MARIO_GRAVITY			0.0009f
 
 #define MARIO_JUMP_DEFLECT_SPEED  0.3f
+
+#define MARIO_RUN_PROGRESS_ACCEL 0.0003f
+#define MARIO_RUN_PROGRESS_DECAY 0.0007f
+#define MARIO_FRICTION			0.0005f // Ma sát khi d?ng ch?y
 
 #define MARIO_STATE_DIE				-10
 #define MARIO_STATE_IDLE			0
@@ -141,6 +145,8 @@ protected:
 	float originalY;
 	float originalX;
 
+	float runProgress; // 0.0f to 1.0f, tracks running progress
+
 	virtual void OnCollisionWithGoomba(LPCOLLISIONEVENT e);
 	virtual void OnCollisionWithCoin(LPCOLLISIONEVENT e);
 	virtual void OnCollisionWithPortal(LPCOLLISIONEVENT e);
@@ -178,6 +184,9 @@ public:
 		isAppearing = false;
 		appearStart = 0;
 		originalY = y;
+		originalX = x;
+
+		runProgress = 0.0f;
 	}
 	virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
 	virtual void Render();
@@ -212,4 +221,6 @@ public:
 	int GetLevel() { return level; }
 	void SetNx(int nx) { this->nx = nx; }
 	float GetVx() { return vx; }
+	float GetRunProgress() { return runProgress; }
+	bool GetIsOnPlatform() { return isOnPlatform; }
 };

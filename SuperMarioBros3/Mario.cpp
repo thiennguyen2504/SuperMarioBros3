@@ -19,9 +19,50 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
     if (!isAppearing && !isBlinking)
     {
         vy += ay * dt;
-        vx += ax * dt;
 
-        if (abs(vx) > abs(maxVx)) vx = maxVx;
+        // Update runProgress
+        if (isRunning && (state == MARIO_STATE_RUNNING_RIGHT || state == MARIO_STATE_RUNNING_LEFT))
+        {
+            runProgress += MARIO_RUN_PROGRESS_ACCEL * dt;
+            if (runProgress > 1.0f) runProgress = 1.0f;
+        }
+        else
+        {
+            runProgress -= MARIO_RUN_PROGRESS_DECAY * dt;
+            if (runProgress < 0.0f) runProgress = 0.0f;
+        }
+
+        // Update maxVx based on runProgress
+        float speedRange = MARIO_RUNNING_SPEED - MARIO_WALKING_SPEED;
+        maxVx = (nx > 0) ?
+            MARIO_WALKING_SPEED + speedRange * runProgress :
+            -(MARIO_WALKING_SPEED + speedRange * runProgress);
+
+        // Apply acceleration or friction
+        LPGAME game = CGame::GetInstance();
+        if (game->IsKeyDown(DIK_L) || game->IsKeyDown(DIK_J))
+        {
+            vx += ax * dt;
+            if (abs(vx) > abs(maxVx)) vx = maxVx;
+        }
+        else if (isOnPlatform)
+        {
+            // Apply friction when no directional keys are pressed
+            if (vx > 0)
+            {
+                vx -= MARIO_FRICTION * dt;
+                if (vx < 0) vx = 0;
+            }
+            else if (vx < 0)
+            {
+                vx += MARIO_FRICTION * dt;
+                if (vx > 0) vx = 0;
+            }
+            ax = 0.0f;
+        }
+
+        // Debug output to track variables
+        DebugOut(L"[DEBUG] vx=%f, ax=%f, nx=%d, isOnPlatform=%d, state=%d, runProgress=%f\n", vx, ax, nx, isOnPlatform, state, runProgress);
     }
 
     if (GetTickCount64() - untouchable_start > MARIO_UNTOUCHABLE_TIME)
@@ -74,7 +115,8 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
     }
     else if (e->nx != 0 && e->obj->IsBlocking())
     {
-        vx = 0;
+        // Only reset vx if not jumping to avoid jerking
+        if (isOnPlatform) vx = 0;
     }
 
     if (dynamic_cast<CGoomba*>(e->obj))
@@ -397,18 +439,18 @@ int CMario::GetAniIdSmall()
                 {
                     if (ax < 0)
                         aniId = ID_ANI_MARIO_SMALL_BRACE_RIGHT;
-                    else if (ax == MARIO_ACCEL_RUN_X)
+                    else if (abs(vx) >= MARIO_RUNNING_SPEED * 0.8f)
                         aniId = ID_ANI_MARIO_SMALL_RUNNING_RIGHT;
-                    else if (ax == MARIO_ACCEL_WALK_X)
+                    else
                         aniId = ID_ANI_MARIO_SMALL_WALKING_RIGHT;
                 }
                 else
                 {
                     if (ax > 0)
                         aniId = ID_ANI_MARIO_SMALL_BRACE_LEFT;
-                    else if (ax == -MARIO_ACCEL_RUN_X)
+                    else if (abs(vx) >= MARIO_RUNNING_SPEED * 0.8f)
                         aniId = ID_ANI_MARIO_SMALL_RUNNING_LEFT;
-                    else if (ax == -MARIO_ACCEL_WALK_X)
+                    else
                         aniId = ID_ANI_MARIO_SMALL_WALKING_LEFT;
                 }
     }
@@ -483,18 +525,18 @@ int CMario::GetAniIdBig()
                 {
                     if (ax < 0)
                         aniId = ID_ANI_MARIO_BRACE_RIGHT;
-                    else if (ax == MARIO_ACCEL_RUN_X)
+                    else if (abs(vx) >= MARIO_RUNNING_SPEED * 0.8f)
                         aniId = ID_ANI_MARIO_RUNNING_RIGHT;
-                    else if (ax == MARIO_ACCEL_WALK_X)
+                    else
                         aniId = ID_ANI_MARIO_WALKING_RIGHT;
                 }
                 else
                 {
                     if (ax > 0)
                         aniId = ID_ANI_MARIO_BRACE_LEFT;
-                    else if (ax == -MARIO_ACCEL_RUN_X)
+                    else if (abs(vx) >= MARIO_RUNNING_SPEED * 0.8f)
                         aniId = ID_ANI_MARIO_RUNNING_LEFT;
-                    else if (ax == -MARIO_ACCEL_WALK_X)
+                    else
                         aniId = ID_ANI_MARIO_WALKING_LEFT;
                 }
     }
@@ -565,25 +607,26 @@ void CMario::SetState(int state)
 {
     if (this->state == MARIO_STATE_DIE || isLocked) return;
 
+    // Store previous nx to maintain direction during jump
+    int prevNx = nx;
+    LPGAME game = CGame::GetInstance();
+
     switch (state)
     {
     case MARIO_STATE_RUNNING_RIGHT:
         if (isSitting) break;
-        maxVx = MARIO_RUNNING_SPEED;
         ax = MARIO_ACCEL_RUN_X;
         nx = 1;
         isRunning = true;
         break;
     case MARIO_STATE_RUNNING_LEFT:
         if (isSitting) break;
-        maxVx = -MARIO_RUNNING_SPEED;
         ax = -MARIO_ACCEL_RUN_X;
         nx = -1;
         isRunning = true;
         break;
     case MARIO_STATE_WALKING_RIGHT:
         if (isSitting) break;
-        maxVx = MARIO_WALKING_SPEED;
         ax = MARIO_ACCEL_WALK_X;
         nx = 1;
         isRunning = false;
@@ -596,7 +639,6 @@ void CMario::SetState(int state)
         break;
     case MARIO_STATE_WALKING_LEFT:
         if (isSitting) break;
-        maxVx = -MARIO_WALKING_SPEED;
         ax = -MARIO_ACCEL_WALK_X;
         nx = -1;
         isRunning = false;
@@ -611,10 +653,26 @@ void CMario::SetState(int state)
         if (isSitting) break;
         if (isOnPlatform)
         {
-            if (abs(this->vx) == MARIO_RUNNING_SPEED)
+            if (abs(this->vx) >= MARIO_RUNNING_SPEED * 0.8f)
                 vy = -MARIO_JUMP_RUN_SPEED_Y;
             else
                 vy = -MARIO_JUMP_SPEED_Y;
+            // Maintain horizontal momentum only if directional keys are pressed
+            if (game->IsKeyDown(DIK_L))
+            {
+                ax = isRunning ? MARIO_ACCEL_RUN_X : MARIO_ACCEL_WALK_X;
+                nx = 1;
+            }
+            else if (game->IsKeyDown(DIK_J))
+            {
+                ax = isRunning ? -MARIO_ACCEL_RUN_X : -MARIO_ACCEL_WALK_X;
+                nx = -1;
+            }
+            else
+            {
+                ax = 0.0f;
+                nx = prevNx; // Preserve direction for animation
+            }
         }
         break;
     case MARIO_STATE_RELEASE_JUMP:
@@ -639,7 +697,6 @@ void CMario::SetState(int state)
         break;
     case MARIO_STATE_IDLE:
         ax = 0.0f;
-        vx = 0.0f;
         isRunning = false;
         if (isHolding && heldKoopa && !IsKeyDown(DIK_A))
         {

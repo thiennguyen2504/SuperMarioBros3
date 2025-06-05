@@ -65,32 +65,63 @@ void CSampleKeyHandler::KeyState(BYTE* states)
 	LPGAME game = CGame::GetInstance();
 	CMario* mario = (CMario*)((LPPLAYSCENE)CGame::GetInstance()->GetCurrentScene())->GetPlayer();
 
-	if (game->IsKeyDown(DIK_L))
+	// If Mario is jumping, maintain current direction unless opposite key is pressed
+	if (!mario->GetIsOnPlatform())
 	{
-		if (game->IsKeyDown(DIK_A))
+		if (game->IsKeyDown(DIK_L) && !game->IsKeyDown(DIK_J))
 		{
-			mario->SetRunning(true);
-			mario->SetState(MARIO_STATE_RUNNING_RIGHT);
+			if (game->IsKeyDown(DIK_A))
+			{
+				mario->SetRunning(true);
+				mario->SetState(MARIO_STATE_RUNNING_RIGHT);
+			}
+			else
+			{
+				mario->SetState(MARIO_STATE_WALKING_RIGHT);
+			}
 		}
-		else
+		else if (game->IsKeyDown(DIK_J) && !game->IsKeyDown(DIK_L))
 		{
-			mario->SetState(MARIO_STATE_WALKING_RIGHT);
-		}
-	}
-	else if (game->IsKeyDown(DIK_J))
-	{
-		if (game->IsKeyDown(DIK_A))
-		{
-			mario->SetRunning(true);
-			mario->SetState(MARIO_STATE_RUNNING_LEFT);
-		}
-		else
-		{
-			mario->SetState(MARIO_STATE_WALKING_LEFT);
+			if (game->IsKeyDown(DIK_A))
+			{
+				mario->SetRunning(true);
+				mario->SetState(MARIO_STATE_RUNNING_LEFT);
+			}
+			else
+			{
+				mario->SetState(MARIO_STATE_WALKING_LEFT);
+			}
 		}
 	}
 	else
 	{
-		mario->SetState(MARIO_STATE_IDLE);
+		if (game->IsKeyDown(DIK_L))
+		{
+			if (game->IsKeyDown(DIK_A))
+			{
+				mario->SetRunning(true);
+				mario->SetState(MARIO_STATE_RUNNING_RIGHT);
+			}
+			else
+			{
+				mario->SetState(MARIO_STATE_WALKING_RIGHT);
+			}
+		}
+		else if (game->IsKeyDown(DIK_J))
+		{
+			if (game->IsKeyDown(DIK_A))
+			{
+				mario->SetRunning(true);
+				mario->SetState(MARIO_STATE_RUNNING_LEFT);
+			}
+			else
+			{
+				mario->SetState(MARIO_STATE_WALKING_LEFT);
+			}
+		}
+		else
+		{
+			mario->SetState(MARIO_STATE_IDLE);
+		}
 	}
 }

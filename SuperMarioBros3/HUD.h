@@ -6,6 +6,7 @@
 #define COIN_DIGITS 2
 #define TIME_DIGITS 3
 #define LIVES_DIGITS 1
+#define P_METER_BLINK_INTERVAL 150 // ms for P-Meter blinking
 
 class CHUD
 {
@@ -14,7 +15,9 @@ protected:
 	LPSPRITE hudSprite;
 	LPSPRITE cardSprite;
 	LPSPRITE arrowBlackSprite;
+	LPSPRITE arrowWhiteSprite;
 	LPSPRITE pMeterBlackSprite;
+	LPSPRITE pMeterWhiteSprite;
 	int score;
 	int coins;
 	int time;

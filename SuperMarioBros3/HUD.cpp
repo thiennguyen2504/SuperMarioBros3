@@ -2,6 +2,7 @@
 #include "AssetIDs.h"
 #include "Game.h"
 #include "PlayScene.h"
+#include "Mario.h"
 #include <cmath>
 
 CHUD::CHUD()
@@ -10,29 +11,34 @@ CHUD::CHUD()
 	float backWidth = CGame::GetInstance()->GetBackBufferWidth();
 	float backHeight = CGame::GetInstance()->GetBackBufferHeight();
 
-	// Position HUD slightly left from the edge
+	// Position HUD
 	x = 100.0f; // 100 pixels from left edge
 	y = backHeight - HUD_HEIGHT / 2.0f; // Center vertically in HUD area (y=259)
 
 	// Initialize values
-	score = 0;
+	score = 100;
 	coins = 0;
 	time = 0;
 	lives = 0;
 
+	// Load sprites
 	hudSprite = CSprites::GetInstance()->Get(ID_SPRITE_HUD);
 	cardSprite = CSprites::GetInstance()->Get(ID_SPRITE_CARD);
 	arrowBlackSprite = CSprites::GetInstance()->Get(ID_SPRITE_ARROW_BLACK);
+	arrowWhiteSprite = CSprites::GetInstance()->Get(ID_SPRITE_ARROW_WHITE);
 	pMeterBlackSprite = CSprites::GetInstance()->Get(ID_SPRITE_P_METER_BLACK);
+	pMeterWhiteSprite = CSprites::GetInstance()->Get(ID_SPRITE_P_METER_WHITE);
 }
 
 void CHUD::Render()
 {
+	// Draw HUD
 	if (hudSprite != nullptr)
 	{
 		hudSprite->DrawStatic(floor(x), floor(y));
 	}
 
+	// Draw 3 cards
 	if (cardSprite != nullptr)
 	{
 		float backWidth = CGame::GetInstance()->GetBackBufferWidth();
@@ -40,7 +46,6 @@ void CHUD::Render()
 		const float CARD_SPACING = 0.0f; // No gap between cards
 		const float RIGHT_MARGIN = 10.0f; // 10 pixels from right edge
 
-		// Draw 3 cards from right to left
 		for (int i = 0; i < 3; i++)
 		{
 			float cardX = backWidth - RIGHT_MARGIN - (i + 1) * CARD_WIDTH - i * CARD_SPACING;
@@ -49,11 +54,11 @@ void CHUD::Render()
 	}
 
 	// Draw digits
-	const float DIGIT_WIDTH = 8.0f; // Sprite 0-9: ~7 pixels wide, add 1 for border
+	const float DIGIT_WIDTH = 8.0f; // Sprite 0-9: 7 pixels wide, add 1 for border
 	const float DIGIT_Y1 = floor(y - 4.0f); // y=255
-	const float DIGIT_Y2 = floor(y - (-4.0f)); // y=263
+	const float DIGIT_Y2 = floor(y + 4.0f); // y=263
 
-	// Convert score to digits (7 digits)
+	// Score (7 digits)
 	int scoreTemp = score;
 	int scoreDigits[SCORE_DIGITS] = { 0 };
 	for (int i = SCORE_DIGITS - 1; i >= 0; i--)
@@ -71,7 +76,7 @@ void CHUD::Render()
 		}
 	}
 
-	// Convert coins to digits (2 digits)
+	// Coins (2 digits)
 	int coinsTemp = coins;
 	int coinDigits[COIN_DIGITS] = { 0 };
 	for (int i = COIN_DIGITS - 1; i >= 0; i--)
@@ -89,7 +94,7 @@ void CHUD::Render()
 		}
 	}
 
-	// Convert time to digits (3 digits)
+	// Time (3 digits)
 	int timeTemp = time;
 	int timeDigits[TIME_DIGITS] = { 0 };
 	for (int i = TIME_DIGITS - 1; i >= 0; i--)
@@ -107,7 +112,7 @@ void CHUD::Render()
 		}
 	}
 
-	// Convert lives to digit (1 digit)
+	// Lives (1 digit)
 	int livesDigit = lives % 10;
 	float livesX = 65.0f; // Start before score
 	LPSPRITE digitSprite = CSprites::GetInstance()->Get(livesDigit);
@@ -116,25 +121,39 @@ void CHUD::Render()
 		digitSprite->DrawStatic(floor(livesX), DIGIT_Y2);
 	}
 
-	// Draw 6 Arrow Black and 1 P-Meter Black
-	const float ARROW_WIDTH = 8.0f; // Sprite 150004: 98-91=7, add 1 for border
-	const float P_METER_WIDTH = 15.0f; // Sprite 150006: 114-100=14, add 1 for border
-	const float ARROW_Y = floor(y - 4.0f); // Align with coins (y=255)
-	float arrowX = 80.0f; // Start after coins/time
+	// Get runProgress from Mario
+	CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+	CMario* mario = (CMario*)scene->GetPlayer();
+	float runProgress = mario ? mario->GetRunProgress() : 0.0f;
 
-	// Draw 6 Arrow Black
-	for (int i = 0; i < 6; i++)
+	// Draw 6 Arrows
+	const float ARROW_WIDTH = 8.0f; // Sprite 150004: 98-91=7, add 1 for border
+	const float ARROW_Y = floor(y - 4.0f); // y=255
+	const int NUM_ARROWS = 6;
+	float arrowX = 80.0f; // Start at x=80
+
+	for (int i = 0; i < NUM_ARROWS; i++)
 	{
-		if (arrowBlackSprite != nullptr)
+		LPSPRITE arrowSprite = (runProgress >= (i + 1) / (float)NUM_ARROWS) ?
+			arrowWhiteSprite : arrowBlackSprite;
+		if (arrowSprite != nullptr)
 		{
-			arrowBlackSprite->DrawStatic(floor(arrowX + i * (ARROW_WIDTH )), ARROW_Y);
+			arrowSprite->DrawStatic(floor(arrowX + i * ARROW_WIDTH), ARROW_Y);
 		}
 	}
 
-	// Draw 1 P-Meter Black
-	float pMeterX = 133.0f ; // After 6 arrows
-	if (pMeterBlackSprite != nullptr)
+	// Draw P-Meter
+	const float P_METER_WIDTH = 15.0f; // Sprite 150006: 114-100=14, add 1 for border
+	float pMeterX = 133.0f; // After 6 arrows
+	LPSPRITE pMeterSprite = pMeterBlackSprite;
+	if (runProgress >= 1.0f)
 	{
-		pMeterBlackSprite->DrawStatic(floor(pMeterX), ARROW_Y);
+		ULONGLONG currentTime = GetTickCount64();
+		ULONGLONG blinkPhase = currentTime % (2 * P_METER_BLINK_INTERVAL);
+		pMeterSprite = (blinkPhase < P_METER_BLINK_INTERVAL) ? pMeterWhiteSprite : pMeterBlackSprite;
+	}
+	if (pMeterSprite != nullptr)
+	{
+		pMeterSprite->DrawStatic(floor(pMeterX), ARROW_Y);
 	}
 }
