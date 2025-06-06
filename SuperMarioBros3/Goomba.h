@@ -2,7 +2,7 @@
 #include "Enemy.h"
 
 #define GOOMBA_WALKING_SPEED 0.01f
-#define GOOMBA_GRAVITY 0.002f
+#define GOOMBA_GRAVITY 0.0005f
 #define HEADSHOT_JUMP_SPEED 0.3f
 
 #define GOOMBA_BBOX_WIDTH 16
@@ -27,6 +27,7 @@ class CGoomba : public Enemy
 protected:
     int type; // 0: Goomba, 1: Red Goomba
     bool isOnPlatform;
+    bool ignoreTerrain; 
     virtual void GetBoundingBox(float& left, float& top, float& right, float& bottom) override;
     virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects) override;
     virtual void Render() override;

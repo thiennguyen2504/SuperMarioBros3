@@ -22,13 +22,14 @@ public:
     void DrawWithScale(float x, float y, float scale);
     void DrawWithScaleY(float x, float y, float scale_y, float scale_x);
     void DrawStatic(float x, float y);
+    void DrawRotated(float x, float y, float angle); // New method to draw with rotation
 
     // Getters for sprite coordinates
     int GetBottom() const { return bottom; }
     int GetTop() const { return top; }
     int GetLeft() const { return left; }
     int GetRight() const { return right; }
-	LPTEXTURE GetTexture() const { return texture; }
+    LPTEXTURE GetTexture() const { return texture; }
 };
 
 typedef CSprite* LPSPRITE;

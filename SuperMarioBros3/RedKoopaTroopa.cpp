@@ -14,9 +14,11 @@
 #include "Coin.h"
 #include "Mushroom.h"
 #include "Leaf.h"
+#include "GameObject.h"
 
 RedKoopaTroopa::RedKoopaTroopa(float x, float y) : KoopaTroopa(x, y)
 {
+    SetShouldJumpOnHeadshot(true); 
 }
 
 void RedKoopaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
@@ -70,9 +72,9 @@ void RedKoopaTroopa::Render()
     {
         aniId = ID_ANI_RED_KOOPA_SHELL_IDLE;
     }
-    else if (state == KOOPA_STATE_SHELL_RUNNING)
+    else if (state == KOOPA_STATE_SHELL_RUNNING || state == KOOPA_STATE_HEADSHOT)
     {
-        aniId = ID_ANI_RED_KOOPA_SHELL_RUN;
+        aniId = (vx == 0) ? ID_ANI_RED_KOOPA_SHELL_IDLE : ID_ANI_RED_KOOPA_SHELL_RUN;
     }
 
     bool shouldRender = true;
@@ -93,7 +95,18 @@ void RedKoopaTroopa::Render()
     CAnimations* animations = CAnimations::GetInstance();
     if (shouldRender && aniId != -1)
     {
-        animations->Get(aniId)->Render(x, y);
+        LPANIMATION animation = animations->Get(aniId);
+        if (animation != nullptr)
+        {
+            if (IsFlipped()) 
+            {
+                animation->RenderFlipped180(x, y);
+            }
+            else
+            {
+                animation->Render(x, y);
+            }
+        }
     }
 }
 

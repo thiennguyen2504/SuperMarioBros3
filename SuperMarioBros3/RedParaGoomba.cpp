@@ -15,6 +15,7 @@ RedParaGoomba::RedParaGoomba(float x, float y) : Enemy(x, y)
     jumpCount = 0;
     isOnPlatform = false;
     isHighJumping = false;
+    ignoreTerrain = false; 
     die_start = hop_start = rest_start = -1;
     SetState(RED_PARAGOOMBA_STATE_WALKING);
 }
@@ -52,7 +53,7 @@ void RedParaGoomba::OnNoCollision(DWORD dt)
 
 void RedParaGoomba::OnCollisionWith(LPCOLLISIONEVENT e)
 {
-    if (e->obj->IsBlocking())
+    if (e->obj->IsBlocking() && !ignoreTerrain) // Skip terrain collision if ignoreTerrain is true
     {
         if (e->ny != 0)
         {
@@ -61,13 +62,12 @@ void RedParaGoomba::OnCollisionWith(LPCOLLISIONEVENT e)
             {
                 isOnPlatform = true;
             }
-		}
-		else if (e->nx != 0)
-		{
-			vx = 0;
-		}
+        }
+        else if (e->nx != 0)
+        {
+            vx = 0;
+        }
     }
-
 }
 
 void RedParaGoomba::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
@@ -81,6 +81,7 @@ void RedParaGoomba::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
         {
             isDeleted = true;
         }
+        ignoreTerrain = true; 
     }
     else
     {
@@ -168,8 +169,6 @@ void RedParaGoomba::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
     x += vx * dt;
     y += vy * dt;
-
-
 }
 
 void RedParaGoomba::Render()
@@ -182,18 +181,26 @@ void RedParaGoomba::Render()
     {
         aniId = ID_ANI_RED_PARAGOOMBA_FLY;
     }
-    else if (state == RED_PARAGOOMBA_STATE_DIE || state == RED_PARAGOOMBA_STATE_HEADSHOT)
+
+    else if (state == RED_PARAGOOMBA_STATE_HEADSHOT)
     {
-        aniId = ID_ANI_RED_PARAGOOMBA_DIE;
+        aniId = ID_ANI_RED_GOOMBA_WALK; 
     }
 
     LPANIMATION ani = CAnimations::GetInstance()->Get(aniId);
     if (ani != nullptr)
     {
-        ani->Render(x, y);
+        if (state == RED_PARAGOOMBA_STATE_HEADSHOT)
+        {
+            ani->RenderFlipped180(x, y); 
+        }
+        else
+        {
+            ani->Render(x, y);
+        }
     }
 
-   // RenderBoundingBox();
+    // RenderBoundingBox();
 }
 
 void RedParaGoomba::SetState(int state)
@@ -223,9 +230,11 @@ void RedParaGoomba::SetState(int state)
         die_start = GetTickCount64();
         y += (RED_PARAGOOMBA_BBOX_HEIGHT - RED_PARAGOOMBA_BBOX_HEIGHT_DIE) / 2;
         vy = -HEADSHOT_JUMP_SPEED;
+        vx = 0; 
         ay = RED_PARAGOOMBA_GRAVITY;
         jumpCount = 0;
         isHighJumping = false;
+        ignoreTerrain = true; 
         break;
     }
 }

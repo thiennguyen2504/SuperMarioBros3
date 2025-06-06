@@ -36,6 +36,7 @@ protected:
     int jumpCount;
     bool isOnPlatform;
     bool isHighJumping;
+    bool ignoreTerrain; 
     ULONGLONG hop_start;
     ULONGLONG rest_start;
     ULONGLONG die_start;

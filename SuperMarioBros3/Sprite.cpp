@@ -117,3 +117,32 @@ void CSprite::DrawStatic(float x, float y)
 
     g->GetSpriteHandler()->DrawSpritesImmediate(&sprite, 1, 0, 0);
 }
+
+void CSprite::DrawRotated(float x, float y, float angle)
+{
+    CGame* g = CGame::GetInstance();
+    float cx, cy;
+    g->GetCamPos(cx, cy);
+
+    cx = (FLOAT)floor(cx);
+    cy = (FLOAT)floor(cy);
+
+    x = (FLOAT)floor(x);
+    y = (FLOAT)floor(y);
+
+    int spriteWidth = (this->right - this->left + 1);
+    int spriteHeight = (this->bottom - this->top + 1);
+
+    // Create rotation matrix
+    D3DXMATRIX matRotation;
+    D3DXMatrixRotationZ(&matRotation, angle);
+
+    // Create translation matrix
+    D3DXMATRIX matTranslation;
+    D3DXMatrixTranslation(&matTranslation, x - cx, g->GetBackBufferHeight() - y + cy, 0.1f);
+
+    // Combine transformations: scale, rotate, then translate
+    this->sprite.matWorld = (this->matScaling * matRotation * matTranslation);
+
+    g->GetSpriteHandler()->DrawSpritesImmediate(&sprite, 1, 0, 0);
+}

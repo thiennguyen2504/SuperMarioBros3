@@ -242,22 +242,21 @@ void CRaccoonMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
 {
     CGoomba* goomba = dynamic_cast<CGoomba*>(e->obj);
 
-    if (isTailAttacking && goomba->GetState() != ENEMY_STATE_DIE)
+    if (isTailAttacking && goomba->GetState() != GOOMBA_STATE_DIE && goomba->GetState() != GOOMBA_STATE_HEADSHOT)
     {
-        goomba->SetState(ENEMY_STATE_DIE);
-        vy = -MARIO_JUMP_DEFLECT_SPEED;
+        goomba->SetState(GOOMBA_STATE_HEADSHOT);
     }
     else if (e->ny < 0)
     {
-        if (goomba->GetState() != ENEMY_STATE_DIE)
+        if (goomba->GetState() != GOOMBA_STATE_DIE && goomba->GetState() != GOOMBA_STATE_HEADSHOT)
         {
-            goomba->SetState(ENEMY_STATE_DIE);
+            goomba->SetState(GOOMBA_STATE_DIE);
             vy = -MARIO_JUMP_DEFLECT_SPEED;
         }
     }
     else
     {
-        if (untouchable == 0 && goomba->GetState() != ENEMY_STATE_DIE)
+        if (untouchable == 0 && goomba->GetState() != GOOMBA_STATE_DIE && goomba->GetState() != GOOMBA_STATE_HEADSHOT)
         {
             OnHit();
         }
@@ -276,7 +275,7 @@ void CRaccoonMario::OnCollisionWithVenusFire(LPCOLLISIONEVENT e)
 {
     VenusFire* venusFire = dynamic_cast<VenusFire*>(e->obj);
 
-    if (untouchable == 0 && venusFire->GetState() != VENUS_FIRE_STATE_HIDDEN)
+    if (untouchable == 0)
     {
         OnHit();
     }
@@ -297,26 +296,9 @@ void CRaccoonMario::OnCollisionWithKoopaTroopa(LPCOLLISIONEVENT e)
 {
     KoopaTroopa* koopa = dynamic_cast<KoopaTroopa*>(e->obj);
 
-    if (isTailAttacking)
+    if (isTailAttacking && koopa->GetState() != KOOPA_STATE_HEADSHOT)
     {
-        if (koopa->GetState() == KOOPA_STATE_WALKING)
-        {
-            koopa->SetState(KOOPA_STATE_SHELL_IDLE);
-            vy = -MARIO_JUMP_DEFLECT_SPEED;
-        }
-        else if (koopa->GetState() == KOOPA_STATE_SHELL_RUNNING)
-        {
-            koopa->SetState(KOOPA_STATE_SHELL_IDLE);
-            vy = -MARIO_JUMP_DEFLECT_SPEED;
-        }
-        else if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE && !koopa->IsIdleCooldownActive())
-        {
-            float koopaX, koopaY;
-            koopa->GetPosition(koopaX, koopaY);
-            koopa->SetDirection(x > koopaX ? -1 : 1);
-            koopa->SetState(KOOPA_STATE_SHELL_RUNNING);
-            vy = -MARIO_JUMP_DEFLECT_SPEED;
-        }
+        koopa->SetState(KOOPA_STATE_HEADSHOT);
     }
     else if (e->ny < 0)
     {
@@ -325,7 +307,7 @@ void CRaccoonMario::OnCollisionWithKoopaTroopa(LPCOLLISIONEVENT e)
             koopa->SetState(KOOPA_STATE_SHELL_IDLE);
             vy = -MARIO_JUMP_DEFLECT_SPEED;
         }
-        else if (koopa->GetState() == KOOPA_STATE_SHELL_RUNNING)
+        else if (koopa->GetState() == KOOPA_STATE_SHELL_RUNNING || koopa->GetState() == KOOPA_STATE_HEADSHOT)
         {
             koopa->SetState(KOOPA_STATE_SHELL_IDLE);
             vy = -MARIO_JUMP_DEFLECT_SPEED;
@@ -344,7 +326,7 @@ void CRaccoonMario::OnCollisionWithKoopaTroopa(LPCOLLISIONEVENT e)
             {
                 float koopaX, koopaY;
                 koopa->GetPosition(koopaX, koopaY);
-                koopa->SetDirection(x > koopaX ? -1 : 1);
+                koopa->SetDirection(koopa->IsFlipped() ? (x > koopaX ? -1 : 1) : (x > koopaX ? 1 : -1));
                 koopa->SetState(KOOPA_STATE_SHELL_RUNNING);
                 vy = -MARIO_JUMP_DEFLECT_SPEED;
             }
@@ -374,7 +356,25 @@ void CRaccoonMario::OnCollisionWithKoopaTroopa(LPCOLLISIONEVENT e)
             {
                 float koopaX, koopaY;
                 koopa->GetPosition(koopaX, koopaY);
-                koopa->SetDirection(x > koopaX ? -1 : 1);
+                koopa->SetDirection(koopa->IsFlipped() ? (x > koopaX ? -1 : 1) : (x > koopaX ? 1 : -1));
+                koopa->SetState(KOOPA_STATE_SHELL_RUNNING);
+            }
+        }
+        else if (koopa->GetState() == KOOPA_STATE_HEADSHOT)
+        {
+            if (IsKeyDown(DIK_A))
+            {
+                if (!isHolding)
+                {
+                    koopa->SetState(KOOPA_STATE_CARRIED);
+                    SetHeldKoopa(koopa);
+                }
+            }
+            else
+            {
+                float koopaX, koopaY;
+                koopa->GetPosition(koopaX, koopaY);
+                koopa->SetDirection(koopa->IsFlipped() ? (x > koopaX ? -1 : 1) : (x > koopaX ? 1 : -1));
                 koopa->SetState(KOOPA_STATE_SHELL_RUNNING);
             }
         }
@@ -385,31 +385,27 @@ void CRaccoonMario::OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e)
 {
     RedParaGoomba* paraGoomba = dynamic_cast<RedParaGoomba*>(e->obj);
 
-    if (isTailAttacking && paraGoomba->GetState() != RED_PARAGOOMBA_STATE_DIE)
+    if (isTailAttacking && paraGoomba->GetState() != RED_PARAGOOMBA_STATE_DIE && paraGoomba->GetState() != RED_PARAGOOMBA_STATE_HEADSHOT)
     {
-        CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
-        float gx, gy;
-        paraGoomba->GetPosition(gx, gy);
-        CGoomba* goomba = new CGoomba(gx, gy - RED_PARAGOOMBA_BBOX_HEIGHT / 2, GOOMBA_TYPE_RED);
-        goomba->SetState(ENEMY_STATE_WALKING);
-        scene->AddObject(goomba);
-        paraGoomba->Delete();
-        vy = -MARIO_JUMP_DEFLECT_SPEED;
+        paraGoomba->SetState(RED_PARAGOOMBA_STATE_HEADSHOT);
     }
     else if (e->ny < 0)
     {
-        CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
-        float gx, gy;
-        paraGoomba->GetPosition(gx, gy);
-        CGoomba* goomba = new CGoomba(gx, gy - RED_PARAGOOMBA_BBOX_HEIGHT / 2, GOOMBA_TYPE_RED);
-        goomba->SetState(ENEMY_STATE_WALKING);
-        scene->AddObject(goomba);
-        paraGoomba->Delete();
-        vy = -MARIO_JUMP_DEFLECT_SPEED;
+        if (paraGoomba->GetState() != RED_PARAGOOMBA_STATE_DIE && paraGoomba->GetState() != RED_PARAGOOMBA_STATE_HEADSHOT)
+        {
+            CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+            float gx, gy;
+            paraGoomba->GetPosition(gx, gy);
+            CGoomba* goomba = new CGoomba(gx, gy - RED_PARAGOOMBA_BBOX_HEIGHT / 2, GOOMBA_TYPE_RED);
+            goomba->SetState(ENEMY_STATE_WALKING);
+            scene->AddObject(goomba);
+            paraGoomba->Delete();
+            vy = -MARIO_JUMP_DEFLECT_SPEED;
+        }
     }
     else
     {
-        if (untouchable == 0 && paraGoomba->GetState() != RED_PARAGOOMBA_STATE_DIE)
+        if (untouchable == 0 && paraGoomba->GetState() != RED_PARAGOOMBA_STATE_DIE && paraGoomba->GetState() != RED_PARAGOOMBA_STATE_HEADSHOT)
         {
             OnHit();
         }
@@ -420,34 +416,70 @@ void CRaccoonMario::OnCollisionWithGreenParaKoopa(LPCOLLISIONEVENT e)
 {
     GreenParaKoopa* paraKoopa = dynamic_cast<GreenParaKoopa*>(e->obj);
 
-    if (isTailAttacking && paraKoopa->GetState() != GREEN_PARAKOOPA_STATE_DIE)
+    if (isTailAttacking && paraKoopa->GetState() != GREEN_PARAKOOPA_STATE_DIE && paraKoopa->GetState() != GREEN_PARAKOOPA_STATE_HEADSHOT)
     {
-        CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
-        float kx, ky;
-        paraKoopa->GetPosition(kx, ky);
-        GreenKoopaTroopa* koopa = new GreenKoopaTroopa(kx, ky - GREEN_PARAKOOPA_BBOX_HEIGHT / 2);
-        koopa->SetState(KOOPA_STATE_WALKING);
-        scene->AddObject(koopa);
-        paraKoopa->Delete();
-        vy = -MARIO_JUMP_DEFLECT_SPEED;
+        paraKoopa->SetState(GREEN_PARAKOOPA_STATE_HEADSHOT);
     }
     else if (e->ny < 0)
     {
-        if (paraKoopa->GetState() != GREEN_PARAKOOPA_STATE_DIE)
+        if (paraKoopa->GetState() != GREEN_PARAKOOPA_STATE_DIE && paraKoopa->GetState() != GREEN_PARAKOOPA_STATE_HEADSHOT)
         {
             CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
             float kx, ky;
             paraKoopa->GetPosition(kx, ky);
             GreenKoopaTroopa* koopa = new GreenKoopaTroopa(kx, ky - GREEN_PARAKOOPA_BBOX_HEIGHT / 2);
-            koopa->SetState(KOOPA_STATE_WALKING);
+            koopa->SetState(KOOPA_STATE_SHELL_IDLE);
             scene->AddObject(koopa);
-            paraKoopa->Delete();
+            paraKoopa->SetState(GREEN_PARAKOOPA_STATE_DIE);
+            vy = -MARIO_JUMP_DEFLECT_SPEED;
+        }
+        else if (paraKoopa->GetState() == GREEN_PARAKOOPA_STATE_HEADSHOT)
+        {
+            CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+            float kx, ky;
+            paraKoopa->GetPosition(kx, ky);
+            GreenKoopaTroopa* koopa = new GreenKoopaTroopa(kx, ky - GREEN_PARAKOOPA_BBOX_HEIGHT / 2);
+            koopa->SetState(KOOPA_STATE_SHELL_RUNNING);
+            koopa->SetDirection(x > kx ? 1 : -1);
+            koopa->SetFlipped(true);
+            scene->AddObject(koopa);
+            paraKoopa->SetState(GREEN_PARAKOOPA_STATE_DIE);
             vy = -MARIO_JUMP_DEFLECT_SPEED;
         }
     }
     else
     {
-        if (untouchable == 0 && paraKoopa->GetState() != GREEN_PARAKOOPA_STATE_DIE)
+        if (paraKoopa->GetState() == GREEN_PARAKOOPA_STATE_HEADSHOT)
+        {
+            if (IsKeyDown(DIK_A))
+            {
+                if (!isHolding)
+                {
+                    CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+                    float kx, ky;
+                    paraKoopa->GetPosition(kx, ky);
+                    GreenKoopaTroopa* koopa = new GreenKoopaTroopa(kx, ky - GREEN_PARAKOOPA_BBOX_HEIGHT / 2);
+                    koopa->SetState(KOOPA_STATE_CARRIED);
+                    koopa->SetFlipped(true);
+                    SetHeldKoopa(koopa);
+                    scene->AddObject(koopa);
+                    paraKoopa->SetState(GREEN_PARAKOOPA_STATE_DIE);
+                }
+            }
+            else
+            {
+                CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+                float kx, ky;
+                paraKoopa->GetPosition(kx, ky);
+                GreenKoopaTroopa* koopa = new GreenKoopaTroopa(kx, ky - GREEN_PARAKOOPA_BBOX_HEIGHT / 2);
+                koopa->SetState(KOOPA_STATE_SHELL_RUNNING);
+                koopa->SetDirection(x > kx ? 1 : -1);
+                koopa->SetFlipped(true);
+                scene->AddObject(koopa);
+                paraKoopa->SetState(GREEN_PARAKOOPA_STATE_DIE);
+            }
+        }
+        else if (untouchable == 0 && paraKoopa->GetState() != GREEN_PARAKOOPA_STATE_DIE)
         {
             OnHit();
         }
@@ -458,7 +490,7 @@ void CRaccoonMario::OnCollisionWithPiranha(LPCOLLISIONEVENT e)
 {
     Piranha* piranha = dynamic_cast<Piranha*>(e->obj);
 
-    if (untouchable == 0 && piranha->GetState() != PIRANHA_STATE_HIDDEN)
+    if (untouchable == 0)
     {
         OnHit();
     }

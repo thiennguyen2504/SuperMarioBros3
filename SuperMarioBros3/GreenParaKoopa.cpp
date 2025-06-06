@@ -17,7 +17,7 @@ GreenParaKoopa::GreenParaKoopa(float x, float y) : Enemy(x, y)
 
 void GreenParaKoopa::GetBoundingBox(float& left, float& top, float& right, float& bottom)
 {
-    if (state == GREEN_PARAKOOPA_STATE_DIE)
+    if (state == GREEN_PARAKOOPA_STATE_DIE || state == GREEN_PARAKOOPA_STATE_HEADSHOT)
     {
         left = x - GREEN_PARAKOOPA_BBOX_WIDTH / 2;
         top = y - GREEN_PARAKOOPA_BBOX_HEIGHT_DIE / 2;
@@ -49,6 +49,14 @@ void GreenParaKoopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
         Delete();
         return;
     }
+    else if (state == GREEN_PARAKOOPA_STATE_HEADSHOT)
+    {
+        if (y > CGame::GetInstance()->GetBackBufferHeight())
+        {
+            isDeleted = true;
+            return;
+        }
+    }
 
     isOnPlatform = false;
     for (size_t i = 0; i < coObjects->size(); i++)
@@ -69,8 +77,7 @@ void GreenParaKoopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
             {
                 isOnPlatform = true;
                 vy = 0;
-                y = objTop - GREEN_PARAKOOPA_BBOX_HEIGHT / 2;
-                DebugOut(L"[DEBUG] GreenParaKoopa at (%f, %f): isOnPlatform=1, y adjusted to %f\n", x, y, y);
+                y = objTop - (state == GREEN_PARAKOOPA_STATE_HEADSHOT ? GREEN_PARAKOOPA_BBOX_HEIGHT_DIE : GREEN_PARAKOOPA_BBOX_HEIGHT) / 2;
                 break;
             }
         }
@@ -81,13 +88,11 @@ void GreenParaKoopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
         vy = GREEN_PARAKOOPA_JUMP_SPEED;
         hover_start = GetTickCount64();
         ay = GREEN_PARAKOOPA_GRAVITY;
-        DebugOut(L"[DEBUG] GreenParaKoopa at (%f, %f) jumping: vy=%f, state=%d\n", x, y, vy, state);
     }
 
     if (hover_start > 0 && GetTickCount64() - hover_start < GREEN_PARAKOOPA_HOVER_DURATION && vy > -0.02f && vy < 0.02f)
     {
         ay = GREEN_PARAKOOPA_HOVER_GRAVITY;
-        DebugOut(L"[DEBUG] GreenParaKoopa at (%f, %f): hovering, ay=%f\n", x, y, ay);
     }
     else
     {
@@ -95,11 +100,8 @@ void GreenParaKoopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
         if (GetTickCount64() - hover_start >= GREEN_PARAKOOPA_HOVER_DURATION)
         {
             hover_start = -1;
-            DebugOut(L"[DEBUG] GreenParaKoopa at (%f, %f): hover ended, ay=%f\n", x, y, ay);
         }
     }
-
-    DebugOut(L"[DEBUG] GreenParaKoopa at (%f, %f): isOnPlatform=%d, vy=%f, ay=%f, state=%d\n", x, y, isOnPlatform, vy, ay, state);
 
     CCollision::GetInstance()->Process(this, dt, coObjects);
 }
@@ -109,7 +111,7 @@ void GreenParaKoopa::Render()
     if (IsDeleted()) return;
 
     int aniId = ID_ANI_GREEN_PARAKOOPA_JUMP;
-    if (state == GREEN_PARAKOOPA_STATE_DIE)
+    if (state == GREEN_PARAKOOPA_STATE_DIE || state == GREEN_PARAKOOPA_STATE_HEADSHOT)
     {
         aniId = ID_ANI_GREEN_KOOPA_SHELL_IDLE;
     }
@@ -117,7 +119,18 @@ void GreenParaKoopa::Render()
     CAnimations* animations = CAnimations::GetInstance();
     if (aniId != -1)
     {
-        animations->Get(aniId)->Render(x, y);
+        LPANIMATION animation = animations->Get(aniId);
+        if (animation != nullptr)
+        {
+            if (state == GREEN_PARAKOOPA_STATE_HEADSHOT)
+            {
+                animation->RenderFlipped180(x, y); 
+            }
+            else
+            {
+                animation->Render(x, y);
+            }
+        }
     }
 }
 
@@ -136,6 +149,13 @@ void GreenParaKoopa::SetState(int state)
         vx = 0;
         vy = 0;
         ay = 0;
+        break;
+    case GREEN_PARAKOOPA_STATE_HEADSHOT:
+        die_start = GetTickCount64();
+        y += (GREEN_PARAKOOPA_BBOX_HEIGHT - GREEN_PARAKOOPA_BBOX_HEIGHT_DIE) / 2;
+        vy = HEADSHOT_JUMP_SPEED;
+        vx = 0;
+        ay = HEADSHOT_GRAVITY;
         break;
     }
 }

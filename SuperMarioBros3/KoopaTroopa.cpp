@@ -20,6 +20,8 @@ KoopaTroopa::KoopaTroopa(float x, float y) : Enemy(x, y)
     this->vx = direction * KOOPA_WALKING_SPEED;
     this->vy = 0;
     this->ay = KOOPA_GRAVITY;
+    this->isFlipped = false;
+    this->shouldJumpOnHeadshot = true;
     SetState(KOOPA_STATE_WALKING);
 }
 
@@ -74,30 +76,40 @@ void KoopaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
             ResetShellIdleTimer();
         }
     }
-
-    float leftEdge, topEdge, rightEdge, bottomEdge;
-    GetBoundingBox(leftEdge, topEdge, rightEdge, bottomEdge);
-    isOnPlatform = false;
-    for (size_t i = 0; i < coObjects->size(); i++)
+    else if (state == KOOPA_STATE_HEADSHOT)
     {
-        LPGAMEOBJECT obj = coObjects->at(i);
-        if (obj->IsBlocking())
+        if (y > CGame::GetInstance()->GetBackBufferHeight())
         {
-            float objLeft, objTop, objRight, objBottom;
-            obj->GetBoundingBox(objLeft, objTop, objRight, objBottom);
+            isDeleted = true;
+        }
+    }
 
-            if (bottomEdge >= objTop - 8 && bottomEdge <= objTop + 8 &&
-                rightEdge > objLeft && leftEdge < objRight)
+    if (state != KOOPA_STATE_HEADSHOT || idleCooldownStart == 0 || GetTickCount64() - idleCooldownStart > 100) 
+    {
+        float leftEdge, topEdge, rightEdge, bottomEdge;
+        GetBoundingBox(leftEdge, topEdge, rightEdge, bottomEdge);
+        isOnPlatform = false;
+        for (size_t i = 0; i < coObjects->size(); i++)
+        {
+            LPGAMEOBJECT obj = coObjects->at(i);
+            if (obj->IsBlocking())
             {
-                isOnPlatform = true;
-                vy = 0;
-                y = objTop - (state == KOOPA_STATE_WALKING ? KOOPA_BBOX_HEIGHT : KOOPA_SHELL_BBOX_HEIGHT) / 2 - 0.1f;
-                if (state == KOOPA_STATE_SHELL_IDLE)
+                float objLeft, objTop, objRight, objBottom;
+                obj->GetBoundingBox(objLeft, objTop, objRight, objBottom);
+
+                if (bottomEdge >= objTop - 8 && bottomEdge <= objTop + 8 &&
+                    rightEdge > objLeft && leftEdge < objRight && vy >= 0) 
                 {
-                    fixedY = y;
-                    isPositionFixed = true;
+                    isOnPlatform = true;
+                    vy = 0;
+                    y = objTop - (state == KOOPA_STATE_WALKING ? KOOPA_BBOX_HEIGHT : KOOPA_SHELL_BBOX_HEIGHT) / 2 - 0.1f;
+                    if (state == KOOPA_STATE_SHELL_IDLE)
+                    {
+                        fixedY = y;
+                        isPositionFixed = true;
+                    }
+                    break;
                 }
-                break;
             }
         }
     }
@@ -117,6 +129,7 @@ void KoopaTroopa::SetState(int state)
         ay = KOOPA_GRAVITY;
         isPositionFixed = false;
         idleCooldownStart = 0;
+        isFlipped = false;
         if (previousState == KOOPA_STATE_CARRIED)
         {
             CMario* mario = (CMario*)((LPPLAYSCENE)CGame::GetInstance()->GetCurrentScene())->GetPlayer();
@@ -151,6 +164,17 @@ void KoopaTroopa::SetState(int state)
         isPositionFixed = false;
         idleCooldownStart = 0;
         break;
+    case KOOPA_STATE_HEADSHOT:
+        y += (KOOPA_BBOX_HEIGHT - KOOPA_SHELL_BBOX_HEIGHT) / 2;
+        vy = KOOPA_HEADSHOT_JUMP_SPEED;
+        vx = 0;
+        ay = HEADSHOT_GRAVITY;
+        ResetShellIdleTimer();
+        isPositionFixed = false;
+        idleCooldownStart = GetTickCount64();
+        kickCooldownStart = GetTickCount64();
+        isFlipped = true;
+        break;
     }
 }
 
@@ -168,7 +192,7 @@ void KoopaTroopa::OnCollisionWith(LPCOLLISIONEVENT e)
                 isPositionFixed = true;
             }
         }
-        if (e->nx != 0 && state == KOOPA_STATE_SHELL_RUNNING && !hasBounced && CanBounce())
+        if (e->nx != 0 && (state == KOOPA_STATE_SHELL_RUNNING || state == KOOPA_STATE_HEADSHOT) && !hasBounced && CanBounce())
         {
             bool shouldBounce = dynamic_cast<CPipe*>(e->obj) != nullptr || dynamic_cast<CBrickPlatform*>(e->obj) != nullptr;
             if (shouldBounce)
@@ -189,11 +213,23 @@ void KoopaTroopa::OnCollisionWith(LPCOLLISIONEVENT e)
             }
         }
     }
+
+    if (dynamic_cast<KoopaTroopa*>(e->obj))
+        OnCollisionWithKoopaTroopa(e);
+}
+
+void KoopaTroopa::OnCollisionWithKoopaTroopa(LPCOLLISIONEVENT e)
+{
+    KoopaTroopa* otherKoopa = dynamic_cast<KoopaTroopa*>(e->obj);
+    if (state == KOOPA_STATE_SHELL_RUNNING && otherKoopa->GetState() != KOOPA_STATE_HEADSHOT)
+    {
+        otherKoopa->SetState(KOOPA_STATE_HEADSHOT);
+    }
 }
 
 int KoopaTroopa::IsCollidable()
 {
-    if (state == KOOPA_STATE_SHELL_RUNNING && IsKickCooldownActive())
+    if ((state == KOOPA_STATE_SHELL_RUNNING || state == KOOPA_STATE_HEADSHOT) && IsKickCooldownActive())
     {
         return 0;
     }

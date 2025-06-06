@@ -2,7 +2,7 @@
 
 #include "Animation.h"
 #include "Sprite.h"
-
+#include <unordered_map>
 class CAnimations
 {
 	static CAnimations* __instance;

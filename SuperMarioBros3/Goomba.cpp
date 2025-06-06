@@ -5,6 +5,7 @@ CGoomba::CGoomba(float x, float y, int type) : Enemy(x, y)
 {
     this->type = type;
     this->isOnPlatform = false;
+    this->ignoreTerrain = false; // Initialize ignoreTerrain
     SetState(GOOMBA_STATE_WALKING);
 }
 
@@ -37,6 +38,7 @@ void CGoomba::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
         {
             isDeleted = true;
         }
+        ignoreTerrain = true; // Ignore terrain in HEADSHOT state
     }
 
     Enemy::Update(dt, coObjects);
@@ -51,7 +53,7 @@ void CGoomba::OnNoCollision(DWORD dt)
 
 void CGoomba::OnCollisionWith(LPCOLLISIONEVENT e)
 {
-    if (e->obj->IsBlocking())
+    if (e->obj->IsBlocking() && !ignoreTerrain)
     {
         if (e->ny != 0)
         {
@@ -80,17 +82,36 @@ void CGoomba::Render()
         {
             aniId = ID_ANI_RED_GOOMBA_DIE;
         }
+        else if (state == GOOMBA_STATE_HEADSHOT)
+        {
+            aniId = ID_ANI_RED_GOOMBA_WALK; // Use walk animation for HEADSHOT
+        }
     }
     else
     {
         aniId = ID_ANI_GOOMBA_WALKING;
-        if (state == GOOMBA_STATE_DIE || state == GOOMBA_STATE_HEADSHOT)
+        if ( state == GOOMBA_STATE_HEADSHOT)
         {
-            aniId = ID_ANI_GOOMBA_DIE;
-        }
+            aniId = ID_ANI_GOOMBA_WALKING; // Use walk animation for HEADSHOT
+		}
+		else if (state == GOOMBA_STATE_DIE)
+		{
+			aniId = ID_ANI_GOOMBA_DIE;
+		}
     }
 
-    CAnimations::GetInstance()->Get(aniId)->Render(x, y);
+    LPANIMATION animation = CAnimations::GetInstance()->Get(aniId);
+    if (animation != nullptr)
+    {
+        if (state == GOOMBA_STATE_HEADSHOT)
+        {
+            animation->RenderFlipped180(x, y); // Render flipped 180 degrees
+        }
+        else
+        {
+            animation->Render(x, y);
+        }
+    }
     //RenderBoundingBox();
 }
 
@@ -112,7 +133,9 @@ void CGoomba::SetState(int state)
     case GOOMBA_STATE_HEADSHOT:
         y += (GOOMBA_BBOX_HEIGHT - GOOMBA_BBOX_HEIGHT_DIE) / 2;
         vy = -HEADSHOT_JUMP_SPEED;
+        vx = 0; 
         ay = GOOMBA_GRAVITY;
+        ignoreTerrain = true; 
         break;
     }
 }
