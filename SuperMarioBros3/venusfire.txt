@@ -13,6 +13,11 @@
 100013	22	1	30	9	50	# sprite-fire-ball-2
 100014	33	0	41	9	50	# sprite-fire-ball-3
 
+#Piranha
+100015	7	107	22	130	40
+100016	7	137	22	160	40
+
 # aniId	spriteId1 frameTime1	spriteId2 frameTime2	...
 [ANIMATIONS]
 10001	100011	100	100012	100	100013	100	100014	100
+10002	100015	150	100016	150

@@ -118,6 +118,7 @@
 class KoopaTroopa;
 class RedParaGoomba;
 class GreenParaKoopa;
+class Piranha;
 
 class CMario : public CGameObject
 {
@@ -156,6 +157,7 @@ protected:
     virtual void OnCollisionWithKoopaTroopa(LPCOLLISIONEVENT e);
     virtual void OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e);
     virtual void OnCollisionWithGreenParaKoopa(LPCOLLISIONEVENT e);
+    virtual void OnCollisionWithPiranha(LPCOLLISIONEVENT e);
     virtual void OnCollisionWithMushroom(LPCOLLISIONEVENT e);
     virtual void OnCollisionWithLeaf(LPCOLLISIONEVENT e);
     virtual int GetAniIdBig();

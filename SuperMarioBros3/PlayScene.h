@@ -17,6 +17,7 @@
 #include "RedKoopaTroopa.h"
 #include "RedParaGoomba.h"
 #include "GreenParaKoopa.h"
+#include "Piranha.h"
 #include "Mushroom.h"
 #include "QuestionBlock.h"
 #include "Leaf.h"
@@ -27,7 +28,6 @@
 #define HUD_HEIGHT 26.0f
 #define BACKGROUND_COLOR D3DXCOLOR(156.0f/255, 252.0f/255, 240.0f/255, 100.0f)
 #define ENEMY_ACTIVE_MARGIN_X 10.0f 
-
 
 
 class CPlayScene : public CScene

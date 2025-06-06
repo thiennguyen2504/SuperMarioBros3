@@ -16,6 +16,7 @@
 #include "RedKoopaTroopa.h"
 #include "RedParaGoomba.h"
 #include "GreenParaKoopa.h"
+#include "Piranha.h"
 #include "Mushroom.h"
 #include "QuestionBlock.h"
 #include "Leaf.h"
@@ -133,6 +134,11 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
     case OBJECT_TYPE_GREEN_PARAKOOPA:
     {
         obj = new GreenParaKoopa(x, y);
+        break;
+    }
+    case OBJECT_TYPE_PIRANHA:
+    {
+        obj = new Piranha(x, y);
         break;
     }
     case OBJECT_TYPE_PLATFORM:
@@ -323,10 +329,12 @@ void CPlayScene::Update(DWORD dt)
         cy = playerY - game->GetBackBufferHeight() / 2;
         if (cx < 0) cx = 0; // Ngăn camera vượt mép trái
         game->SetCamPos(cx, cy);
+        DebugOut(L"[DEBUG] Camera set to cx=%f, cy=%f\n", cx, cy);
     }
     const float ENEMY_UPDATE_MARGIN = 20.0f; // 20px ngoài cạnh camera
     float activeLeft = cx - ENEMY_UPDATE_MARGIN;
     float activeRight = cx + backBufferWidth + ENEMY_UPDATE_MARGIN;
+    DebugOut(L"[DEBUG] Camera cx=%f, backBufferWidth=%f, activeLeft=%f, activeRight=%f\n", cx, backBufferWidth, activeLeft, activeRight);
 
     // Đặt isActive cho enemy
     for (size_t i = 0; i < objects.size(); i++)
@@ -337,6 +345,15 @@ void CPlayScene::Update(DWORD dt)
             objects[i]->GetPosition(ex, ey);
             bool active = ex >= activeLeft && ex <= activeRight;
             objects[i]->SetActive(active);
+            string enemyType = "Unknown";
+            if (dynamic_cast<CGoomba*>(objects[i])) enemyType = "Goomba";
+            else if (dynamic_cast<RedKoopaTroopa*>(objects[i])) enemyType = "RedKoopaTroopa";
+            else if (dynamic_cast<RedParaGoomba*>(objects[i])) enemyType = "RedParaGoomba";
+            else if (dynamic_cast<VenusFire*>(objects[i])) enemyType = "VenusFire";
+            else if (dynamic_cast<Fireball*>(objects[i])) enemyType = "Fireball";
+            else if (dynamic_cast<GreenParaKoopa*>(objects[i])) enemyType = "GreenParaKoopa";
+            else if (dynamic_cast<Piranha*>(objects[i])) enemyType = "Piranha";
+            DebugOut(L"[DEBUG] %s at (%f, %f) isActive=%d\n", ToLPCWSTR(enemyType), ex, ey, active);
         }
     }
 
