@@ -36,6 +36,8 @@ public:
     virtual void OnCollisionWithFireball(LPCOLLISIONEVENT e) override;
     virtual void OnCollisionWithKoopaTroopa(LPCOLLISIONEVENT e) override;
     virtual void OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e) override;
+    virtual void OnCollisionWithGreenParaKoopa(LPCOLLISIONEVENT e);
+    virtual void OnCollisionWithPiranha(LPCOLLISIONEVENT e);
     virtual void OnCollisionWithPortal(LPCOLLISIONEVENT e) override;
     virtual void OnHitByKoopa() override;
     virtual void Render() override;
