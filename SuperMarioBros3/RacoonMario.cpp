@@ -1,17 +1,20 @@
 #include "RacoonMario.h"
 #include "Goomba.h"
+#include "Coin.h"
 #include "VenusFire.h"
 #include "Fireball.h"
 #include "KoopaTroopa.h"
 #include "RedParaGoomba.h"
 #include "GreenParaKoopa.h"
 #include "Piranha.h"
+#include "StaticCoin.h"
 #include "Mushroom.h"
 #include "Leaf.h"
 #include "PlayScene.h"
 #include "Mario.h"
 #include "Portal.h"
 #include "GreenKoopaTroopa.h"
+#include "HUD.h"
 
 void CRaccoonMario::OnHit()
 {
@@ -126,6 +129,8 @@ void CRaccoonMario::OnCollisionWith(LPCOLLISIONEVENT e)
         OnCollisionWithGreenParaKoopa(e);
     else if (dynamic_cast<Piranha*>(e->obj))
         OnCollisionWithPiranha(e);
+    else if (dynamic_cast<StaticCoin*>(e->obj))
+        OnCollisionWithStaticCoin(e);
     else if (dynamic_cast<CMushroom*>(e->obj))
         OnCollisionWithMushroom(e);
     else if (dynamic_cast<CLeaf*>(e->obj))
@@ -151,6 +156,14 @@ void CRaccoonMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
             OnHit();
         }
     }
+}
+
+void CRaccoonMario::OnCollisionWithCoin(LPCOLLISIONEVENT e)
+{
+    e->obj->Delete();
+    CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+    CHUD* hud = scene->GetHUD();
+    if (hud) hud->AddCoin();
 }
 
 void CRaccoonMario::OnCollisionWithVenusFire(LPCOLLISIONEVENT e)
@@ -302,10 +315,30 @@ void CRaccoonMario::OnCollisionWithPiranha(LPCOLLISIONEVENT e)
     }
 }
 
+void CRaccoonMario::OnCollisionWithStaticCoin(LPCOLLISIONEVENT e)
+{
+    e->obj->Delete();
+    CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+    CHUD* hud = scene->GetHUD();
+    if (hud) hud->AddCoin();
+}
+
 void CRaccoonMario::OnCollisionWithPortal(LPCOLLISIONEVENT e)
 {
     CPortal* p = (CPortal*)e->obj;
     CGame::GetInstance()->InitiateSwitchScene(p->GetSceneId());
+}
+
+void CRaccoonMario::OnCollisionWithMushroom(LPCOLLISIONEVENT e)
+{
+    CMushroom* mushroom = dynamic_cast<CMushroom*>(e->obj);
+    mushroom->Delete();
+}
+
+void CRaccoonMario::OnCollisionWithLeaf(LPCOLLISIONEVENT e)
+{
+    CLeaf* leaf = dynamic_cast<CLeaf*>(e->obj);
+    leaf->Delete();
 }
 
 void CRaccoonMario::OnHitByKoopa()

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "GameObject.h"
 #include "Animation.h"
@@ -22,7 +22,7 @@ protected:
     float ay;
     ULONGLONG spawnTime;
     BOOLEAN isFromQuestionBlock;
-    float startX, startY; // V? trí ban ??u
+    float startX, startY; 
 
 public:
     CCoin(float x, float y, BOOLEAN fromQuestionBlock = false);

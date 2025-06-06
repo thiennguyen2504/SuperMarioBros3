@@ -1,4 +1,4 @@
-#include "Coin.h"
+ï»¿#include "Coin.h"
 #include "Collision.h"
 #include "PlayScene.h"
 #include "Effect.h"
@@ -10,7 +10,7 @@ CCoin::CCoin(float x, float y, BOOLEAN fromQuestionBlock) : CGameObject(x, y)
     vy = isFromQuestionBlock ? COIN_BOUNCE_SPEED : 0.0f;
     ay = isFromQuestionBlock ? COIN_GRAVITY : 0.0f;
     spawnTime = isFromQuestionBlock ? GetTickCount64() : 0;
-    startX = x; // L?u v? trí ban ??u
+    startX = x; 
     startY = y;
     SetState(COIN_STATE_ACTIVE);
 }
@@ -33,9 +33,8 @@ void CCoin::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
         if (GetTickCount64() - spawnTime > COIN_LIFETIME)
         {
-            DebugOut(L"[DEBUG] Coin at (%f, %f), creating effect at (%f, %f)\n", x, y, x, y);
             isDeleted = true;
-            CEffect* effect = new CEffect(x, y, 100); // Dùng x, y hi?n t?i
+            CEffect* effect = new CEffect(x, y, 100); 
             scene->AddObject(effect);
             return;
         }

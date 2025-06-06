@@ -18,16 +18,20 @@
 #include "RedParaGoomba.h"
 #include "GreenParaKoopa.h"
 #include "Piranha.h"
+#include "PButton.h"
+#include "GoldBrick.h"
 #include "Mushroom.h"
 #include "QuestionBlock.h"
 #include "Leaf.h"
 #include "HUD.h"
 #include "Effect.h"
 
-#define GAME_MARGIN 10.0f
+#define GAME_MARGIN 0.1f
 #define HUD_HEIGHT 26.0f
 #define BACKGROUND_COLOR D3DXCOLOR(156.0f/255, 252.0f/255, 240.0f/255, 100.0f)
-#define ENEMY_ACTIVE_MARGIN_X 10.0f 
+#define ENEMY_ACTIVE_THRESHOLD_X  20.0f
+
+
 
 
 class CPlayScene : public CScene
@@ -36,13 +40,14 @@ protected:
     LPGAMEOBJECT player;
     vector<LPGAMEOBJECT> objects;
     vector<LPGAMEOBJECT> newObjects;
+    vector<LPGAMEOBJECT> goldBricks; 
     LPHUD hud;
 
     void _ParseSection_SPRITES(string line);
     void _ParseSection_ANIMATIONS(string line);
     void _ParseSection_ASSETS(string line);
     void _ParseSection_OBJECTS(string line);
-    void LoadAssets(LPCWSTR assetFile);
+    void LoadAssets(LPCWSTR assetsPath);
 
 public:
     CPlayScene(int id, LPCWSTR filePath);
@@ -54,8 +59,9 @@ public:
     void SetPlayer(LPGAMEOBJECT player) { this->player = player; }
     LPGAMEOBJECT GetPlayer() { return player; }
     LPHUD GetHUD() { return hud; }
+    vector<LPGAMEOBJECT> GetGoldBricks() { return goldBricks; }
 
-    void AddObject(LPGAMEOBJECT obj) { newObjects.push_back(obj); }
+    void AddObject(LPGAMEOBJECT obj);
     void Clear();
     void PurgeDeletedObjects();
     static bool IsGameObjectDeleted(const LPGAMEOBJECT& o);

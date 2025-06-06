@@ -119,6 +119,8 @@ class KoopaTroopa;
 class RedParaGoomba;
 class GreenParaKoopa;
 class Piranha;
+class PButton;
+class StaticCoin;
 
 class CMario : public CGameObject
 {
@@ -132,7 +134,6 @@ protected:
     int untouchable;
     ULONGLONG untouchable_start;
     BOOLEAN isOnPlatform;
-    int coin;
 
     KoopaTroopa* heldKoopa;
     BOOLEAN isHolding;
@@ -158,6 +159,8 @@ protected:
     virtual void OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e);
     virtual void OnCollisionWithGreenParaKoopa(LPCOLLISIONEVENT e);
     virtual void OnCollisionWithPiranha(LPCOLLISIONEVENT e);
+    virtual void OnCollisionWithPButton(LPCOLLISIONEVENT e);
+    virtual void OnCollisionWithStaticCoin(LPCOLLISIONEVENT e);
     virtual void OnCollisionWithMushroom(LPCOLLISIONEVENT e);
     virtual void OnCollisionWithLeaf(LPCOLLISIONEVENT e);
     virtual int GetAniIdBig();
@@ -175,7 +178,6 @@ public:
         untouchable = 0;
         untouchable_start = -1;
         isOnPlatform = false;
-        coin = 0;
 
         heldKoopa = nullptr;
         isHolding = false;

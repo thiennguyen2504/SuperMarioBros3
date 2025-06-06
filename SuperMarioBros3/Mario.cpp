@@ -10,12 +10,15 @@
 #include "RedParaGoomba.h"
 #include "GreenParaKoopa.h"
 #include "Piranha.h"
+#include "PButton.h"
+#include "StaticCoin.h"
 #include "Mushroom.h"
 #include "Leaf.h"
 #include "RacoonMario.h"
 #include "Collision.h"
 #include "PlayScene.h"
 #include "GreenKoopaTroopa.h"
+#include "HUD.h"
 
 void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
@@ -137,6 +140,10 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
         OnCollisionWithGreenParaKoopa(e);
     else if (dynamic_cast<Piranha*>(e->obj))
         OnCollisionWithPiranha(e);
+    else if (dynamic_cast<PButton*>(e->obj))
+        OnCollisionWithPButton(e);
+    else if (dynamic_cast<StaticCoin*>(e->obj))
+        OnCollisionWithStaticCoin(e);
     else if (dynamic_cast<CMushroom*>(e->obj))
         OnCollisionWithMushroom(e);
     else if (dynamic_cast<CLeaf*>(e->obj))
@@ -178,7 +185,9 @@ void CMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
 void CMario::OnCollisionWithCoin(LPCOLLISIONEVENT e)
 {
     e->obj->Delete();
-    coin++;
+    CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+    CHUD* hud = scene->GetHUD();
+    if (hud) hud->AddCoin();
 }
 
 void CMario::OnCollisionWithPortal(LPCOLLISIONEVENT e)
@@ -310,14 +319,11 @@ void CMario::OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e)
         paraGoomba->GetPosition(gx, gy);
         CGoomba* goomba = new CGoomba(gx, gy - RED_PARAGOOMBA_BBOX_HEIGHT / 2, GOOMBA_TYPE_RED);
         goomba->SetState(ENEMY_STATE_WALKING);
-        if (scene)
-        {
-            scene->AddObject(goomba);
-        }
+        scene->AddObject(goomba);
         paraGoomba->Delete();
         vy = -MARIO_JUMP_DEFLECT_SPEED;
     }
-    else if (e->nx != 0)
+    else
     {
         if (untouchable == 0 && paraGoomba->GetState() != RED_PARAGOOMBA_STATE_DIE)
         {
@@ -347,10 +353,7 @@ void CMario::OnCollisionWithGreenParaKoopa(LPCOLLISIONEVENT e)
             paraKoopa->GetPosition(kx, ky);
             GreenKoopaTroopa* koopa = new GreenKoopaTroopa(kx, ky - GREEN_PARAKOOPA_BBOX_HEIGHT / 2);
             koopa->SetState(KOOPA_STATE_WALKING);
-            if (scene)
-            {
-                scene->AddObject(koopa);
-            }
+            scene->AddObject(koopa);
             paraKoopa->Delete();
             vy = -MARIO_JUMP_DEFLECT_SPEED;
         }
@@ -388,6 +391,20 @@ void CMario::OnCollisionWithPiranha(LPCOLLISIONEVENT e)
             SetState(MARIO_STATE_DIE);
         }
     }
+}
+
+void CMario::OnCollisionWithPButton(LPCOLLISIONEVENT e)
+{
+    PButton* button = dynamic_cast<PButton*>(e->obj);
+    button->SetState(P_BUTTON_STATE_PRESSED);
+}
+
+void CMario::OnCollisionWithStaticCoin(LPCOLLISIONEVENT e)
+{
+    e->obj->Delete();
+    CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+    CHUD* hud = scene->GetHUD();
+    if (hud) hud->AddCoin();
 }
 
 void CMario::OnCollisionWithMushroom(LPCOLLISIONEVENT e)
@@ -663,7 +680,6 @@ void CMario::SetState(int state)
 {
     if (this->state == MARIO_STATE_DIE || isLocked) return;
 
-    // Store previous nx to maintain direction during jump
     int prevNx = nx;
     LPGAME game = CGame::GetInstance();
 
@@ -713,7 +729,6 @@ void CMario::SetState(int state)
                 vy = -MARIO_JUMP_RUN_SPEED_Y;
             else
                 vy = -MARIO_JUMP_SPEED_Y;
-            // Maintain horizontal momentum only if directional keys are pressed
             if (game->IsKeyDown(DIK_L))
             {
                 ax = isRunning ? MARIO_ACCEL_RUN_X : MARIO_ACCEL_WALK_X;
@@ -727,7 +742,7 @@ void CMario::SetState(int state)
             else
             {
                 ax = 0.0f;
-                nx = prevNx; // Preserve direction for animation
+                nx = prevNx;
             }
         }
         break;

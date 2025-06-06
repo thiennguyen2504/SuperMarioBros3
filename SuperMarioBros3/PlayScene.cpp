@@ -17,6 +17,8 @@
 #include "RedParaGoomba.h"
 #include "GreenParaKoopa.h"
 #include "Piranha.h"
+#include "PButton.h"
+#include "GoldBrick.h"
 #include "Mushroom.h"
 #include "QuestionBlock.h"
 #include "Leaf.h"
@@ -139,6 +141,18 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
     case OBJECT_TYPE_PIRANHA:
     {
         obj = new Piranha(x, y);
+        break;
+    }
+    case OBJECT_TYPE_GOLD_BRICK:
+    {
+        int type = atoi(tokens[3].c_str());
+        obj = new GoldBrick(x, y, type);
+        goldBricks.push_back(obj);
+        break;
+    }
+    case OBJECT_TYPE_P_BUTTON:
+    {
+        obj = new PButton(x, y);
         break;
     }
     case OBJECT_TYPE_PLATFORM:
@@ -312,24 +326,22 @@ void CPlayScene::Update(DWORD dt)
     PurgeDeletedObjects();
 
     // Tính phạm vi kích hoạt dựa trên camera
-    float cx, cy, playerX, playerY;
+    float cx, playerX, playerY;
     CGame* game = CGame::GetInstance();
     float backBufferWidth = game->GetBackBufferWidth();
     if (!player)
     {
         DebugOut(L"[ERROR] Player is null, setting cx=0\n");
         cx = 0;
-        cy = 0;
     }
     else
     {
         player->GetPosition(playerX, playerY);
         DebugOut(L"[DEBUG] Player position: (%f, %f)\n", playerX, playerY);
         cx = playerX - backBufferWidth / 2;
-        cy = playerY - game->GetBackBufferHeight() / 2;
         if (cx < 0) cx = 0; // Ngăn camera vượt mép trái
-        game->SetCamPos(cx, cy);
-        DebugOut(L"[DEBUG] Camera set to cx=%f, cy=%f\n", cx, cy);
+        game->SetCamPos(cx, 0); // Giữ cy=0 cố định
+        DebugOut(L"[DEBUG] Camera set to cx=%f, cy=0.000000\n", cx);
     }
     const float ENEMY_UPDATE_MARGIN = 20.0f; // 20px ngoài cạnh camera
     float activeLeft = cx - ENEMY_UPDATE_MARGIN;
@@ -498,6 +510,7 @@ void CPlayScene::Clear()
         }
     }
     objects.clear();
+    goldBricks.clear();
 }
 
 void CPlayScene::Unload()
@@ -517,6 +530,7 @@ void CPlayScene::Unload()
     }
 
     objects.clear();
+    goldBricks.clear();
     player = nullptr;
     DebugOut(L"[INFO] Scene %d unloaded! \n", id);
 }
@@ -539,4 +553,25 @@ void CPlayScene::PurgeDeletedObjects()
     }
 
     objects.erase(std::remove_if(objects.begin(), objects.end(), IsGameObjectDeleted), objects.end());
+
+    for (auto it = goldBricks.begin(); it != goldBricks.end(); )
+    {
+        if (*it && (*it)->IsDeleted())
+        {
+            it = goldBricks.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+}
+
+void CPlayScene::AddObject(LPGAMEOBJECT obj)
+{
+    newObjects.push_back(obj);
+    if (dynamic_cast<GoldBrick*>(obj))
+    {
+        goldBricks.push_back(obj);
+    }
 }
