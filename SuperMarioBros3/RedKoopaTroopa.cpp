@@ -115,7 +115,7 @@ void RedKoopaTroopa::OnCollisionWithVenusFire(LPCOLLISIONEVENT e)
     VenusFire* venusFire = dynamic_cast<VenusFire*>(e->obj);
     if (state == KOOPA_STATE_SHELL_RUNNING && e->nx != 0)
     {
-        venusFire->Delete();
+		venusFire->SetState(VENUS_FIRE_STATE_DIE);
     }
 }
 

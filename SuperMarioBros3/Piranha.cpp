@@ -2,6 +2,7 @@
 #include "Animations.h"
 #include "Mario.h"
 #include "RacoonMario.h"
+#include "KoopaTroopa.h"
 #include "PlayScene.h"
 #include "debug.h"
 
@@ -9,6 +10,7 @@ Piranha::Piranha(float x, float y) : Enemy(x, y)
 {
     this->waitTimer = 0;
     this->cycleTimer = 0;
+    this->dieTimer = 0; 
     this->baseY = y;
     this->maxEmergeY = y - PIRANHA_EMERGE_HEIGHT;
     this->vx = 0;
@@ -27,6 +29,16 @@ void Piranha::GetBoundingBox(float& left, float& top, float& right, float& botto
 
 void Piranha::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
+    if (state == PIRANHA_STATE_DIE)
+    {
+        dieTimer += dt;
+        if (dieTimer >= PIRANHA_DIE_TIME)
+        {
+            Delete();
+        }
+        return;
+    }
+
     CMario* mario = nullptr;
     CRaccoonMario* raccoonMario = nullptr;
     for (size_t i = 0; i < coObjects->size(); i++)
@@ -108,7 +120,6 @@ void Piranha::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
     Enemy::Update(dt, coObjects);
     vy = originalVy;
 
-    DebugOut(L"[DEBUG] Piranha at (%f, %f): state=%d, vy=%f, isMarioNear=%d\n", x, y, state, vy, isMarioNear);
 }
 
 void Piranha::Render()
@@ -116,7 +127,8 @@ void Piranha::Render()
     if (IsDeleted()) return;
 
     CAnimations* animations = CAnimations::GetInstance();
-    animations->Get(ID_ANI_PIRANHA)->Render(x, y);
+    int aniId = (state == PIRANHA_STATE_DIE) ? ID_ANI_PIRANHA_DIE : ID_ANI_PIRANHA;
+    animations->Get(aniId)->Render(x, y);
 }
 
 void Piranha::SetState(int state)
@@ -142,5 +154,33 @@ void Piranha::SetState(int state)
         waitTimer = 0;
         vy = PIRANHA_RETREAT_SPEED;
         break;
+    case PIRANHA_STATE_DIE:
+        vx = 0;
+        vy = 0;
+        ay = 0;
+        dieTimer = 0;
+        break;
+    }
+}
+
+void Piranha::OnCollisionWith(LPCOLLISIONEVENT e)
+{
+    if (state == PIRANHA_STATE_DIE) return;
+
+    if (dynamic_cast<CRaccoonMario*>(e->obj))
+    {
+        CRaccoonMario* raccoonMario = dynamic_cast<CRaccoonMario*>(e->obj);
+        if (e->nx != 0 && raccoonMario->IsTailAttacking())
+        {
+            SetState(PIRANHA_STATE_DIE);
+        }
+    }
+    else if (dynamic_cast<KoopaTroopa*>(e->obj))
+    {
+        KoopaTroopa* koopa = dynamic_cast<KoopaTroopa*>(e->obj);
+        if (e->nx != 0 && koopa->GetState() == KOOPA_STATE_SHELL_RUNNING)
+        {
+            SetState(PIRANHA_STATE_DIE);
+        }
     }
 }

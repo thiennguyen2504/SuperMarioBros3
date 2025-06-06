@@ -2,8 +2,10 @@
 #include "Sprites.h"
 #include "Mario.h"
 #include "Fireball.h"
-#include "PlayScene.h"
 #include "RacoonMario.h"
+#include "KoopaTroopa.h"
+#include "PlayScene.h"
+#include "Animations.h"
 
 VenusFire::VenusFire(float x, float y, int color,
     int spriteIdLeftDown, int spriteIdLeftUp, int spriteIdRightDown, int spriteIdRightUp)
@@ -17,6 +19,7 @@ VenusFire::VenusFire(float x, float y, int color,
     this->moveTimer = 0;
     this->waitTimer = 0;
     this->cycleTimer = 0;
+    this->dieTimer = 0; 
     this->baseY = y;
     this->targetY = y;
     this->maxEmergeY = y - VENUS_FIRE_EMERGE_HEIGHT;
@@ -51,6 +54,16 @@ void VenusFire::GetBoundingBox(float& left, float& top, float& right, float& bot
 
 void VenusFire::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
+    if (state == VENUS_FIRE_STATE_DIE)
+    {
+        dieTimer += dt;
+        if (dieTimer >= VENUS_FIRE_DIE_TIME)
+        {
+            Delete();
+        }
+        return;
+    }
+
     CMario* mario = nullptr;
     CRaccoonMario* raccoonMario = nullptr;
     for (size_t i = 0; i < coObjects->size(); i++)
@@ -149,6 +162,13 @@ void VenusFire::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
 void VenusFire::Render()
 {
+    if (state == VENUS_FIRE_STATE_DIE)
+    {
+        CAnimations::GetInstance()->Get(ID_ANI_VENUS_FIRE_DIE)->Render(x, y);
+		DebugOut(L"[INFO] Venus Fire is dying at position (%.2f, %.2f)\n", x, y);
+        return;
+    }
+
     CSprites* sprites = CSprites::GetInstance();
 
     int spriteId;
@@ -186,21 +206,46 @@ void VenusFire::SetState(int state)
         cycleTimer = 0;
         vy = 0;
         break;
-
     case VENUS_FIRE_STATE_EMERGING:
         moveTimer = 0;
         vy = -VENUS_FIRE_EMERGE_SPEED;
         break;
-
     case VENUS_FIRE_STATE_WAITING:
         waitTimer = 0;
         hasFired = false;
         vy = 0;
         break;
-
     case VENUS_FIRE_STATE_RETREATING:
         moveTimer = 0;
         vy = VENUS_FIRE_RETREAT_SPEED;
         break;
+    case VENUS_FIRE_STATE_DIE:
+        vx = 0;
+        vy = 0;
+        ay = 0;
+        dieTimer = 0;
+        break;
+    }
+}
+
+void VenusFire::OnCollisionWith(LPCOLLISIONEVENT e)
+{
+    if (state == VENUS_FIRE_STATE_DIE) return;
+
+    if (dynamic_cast<CRaccoonMario*>(e->obj))
+    {
+        CRaccoonMario* raccoonMario = dynamic_cast<CRaccoonMario*>(e->obj);
+        if (e->nx != 0 && raccoonMario->IsTailAttacking())
+        {
+            SetState(VENUS_FIRE_STATE_DIE);
+        }
+    }
+    else if (dynamic_cast<KoopaTroopa*>(e->obj))
+    {
+        KoopaTroopa* koopa = dynamic_cast<KoopaTroopa*>(e->obj);
+        if (koopa->GetState() == KOOPA_STATE_SHELL_RUNNING)
+        {
+            SetState(VENUS_FIRE_STATE_DIE);
+        }
     }
 }

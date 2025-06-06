@@ -83,7 +83,6 @@ void KoopaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
             isDeleted = true;
         }
     }
-
     if (state != KOOPA_STATE_HEADSHOT || idleCooldownStart == 0 || GetTickCount64() - idleCooldownStart > 100) 
     {
         float leftEdge, topEdge, rightEdge, bottomEdge;
