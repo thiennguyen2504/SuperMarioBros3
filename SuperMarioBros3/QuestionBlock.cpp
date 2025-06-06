@@ -1,11 +1,14 @@
 ﻿#include "QuestionBlock.h"
 #include "Collision.h"
 #include "Mario.h"
+#include "RacoonMario.h"
 #include "PlayScene.h"
 #include "Mushroom.h"
 #include "Coin.h"
 #include "Leaf.h"
 #include "Effect.h"
+
+#define CENTER_THRESHOLD (QUESTION_BLOCK_BBOX_HEIGHT / 4.0f) 
 
 CQuestionBlock::CQuestionBlock(float x, float y, int blockType) : CGameObject(x, y)
 {
@@ -58,7 +61,60 @@ void CQuestionBlock::Render()
 
 void CQuestionBlock::OnCollisionWith(LPCOLLISIONEVENT e)
 {
-    if (dynamic_cast<CMario*>(e->obj))
+    if (dynamic_cast<CRaccoonMario*>(e->obj))
+    {
+        CRaccoonMario* raccoonMario = dynamic_cast<CRaccoonMario*>(e->obj);
+        bool canActivate = false;
+
+        if (e->ny < 0) 
+        {
+            canActivate = true;
+        }
+        else if (e->nx != 0 && raccoonMario->IsTailAttacking()) 
+        {
+            float blockCenterY = y;
+
+            float marioLeft, marioTop, marioRight, marioBottom;
+            raccoonMario->GetBoundingBox(marioLeft, marioTop, marioRight, marioBottom);
+
+            float marioCenterY = (marioTop + marioBottom) / 2.0f;
+            float marioLowerHalfTop = marioCenterY;
+
+            if (blockCenterY >= marioLowerHalfTop && abs(blockCenterY - marioCenterY) <= CENTER_THRESHOLD)
+            {
+                canActivate = true;
+            }
+        }
+
+        if (canActivate && hasItem && state == QUESTION_BLOCK_STATE_ACTIVE)
+        {
+            CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+            if (type == QUESTION_BLOCK_TYPE_COIN)
+            {
+                CCoin* coin = new CCoin(x, y - QUESTION_BLOCK_BBOX_HEIGHT, true);
+                scene->AddObject(coin);
+                SetState(QUESTION_BLOCK_STATE_INACTIVE);
+            }
+            else if (type == QUESTION_BLOCK_TYPE_ITEM)
+            {
+                if (raccoonMario->GetLevel() == MARIO_LEVEL_SMALL)
+                {
+                    CMushroom* mushroom = new CMushroom(x, y);
+                    scene->AddObject(mushroom);
+                }
+                else
+                {
+                    CLeaf* leaf = new CLeaf(x, y - QUESTION_BLOCK_BBOX_HEIGHT);
+                    scene->AddObject(leaf);
+                }
+                SetState(QUESTION_BLOCK_STATE_INACTIVE);
+            }
+
+            StartBounce();
+            raccoonMario->SetVy(0.2f);
+        }
+    }
+    else if (dynamic_cast<CMario*>(e->obj))
     {
         CMario* mario = dynamic_cast<CMario*>(e->obj);
         if (e->ny < 0 && hasItem && state == QUESTION_BLOCK_STATE_ACTIVE)
@@ -100,9 +156,9 @@ void CQuestionBlock::StartBounce()
 void CQuestionBlock::SetState(int state)
 {
     CGameObject::SetState(state);
-	if (state == QUESTION_BLOCK_STATE_INACTIVE)
-	{
-		hasItem = false;
-		isBouncing = false;
-	}
+    if (state == QUESTION_BLOCK_STATE_INACTIVE)
+    {
+        hasItem = false;
+        isBouncing = false;
+    }
 }

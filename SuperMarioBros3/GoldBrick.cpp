@@ -11,7 +11,6 @@
 #define GOLD_PIECE_SPEED 0.15f
 #define GOLD_PIECE_GRAVITY 0.002f
 #define GOLD_PIECE_LIFETIME 500
-
 #define CENTER_THRESHOLD (GOLD_BRICK_BBOX_HEIGHT / 4.0f)
 
 class GoldPiece : public CGameObject
@@ -94,7 +93,7 @@ int GoldBrick::IsBlocking(LPGAMEOBJECT obj)
                 return 0;
         }
     }
-    return 1; 
+    return 1;
 }
 
 void GoldBrick::OnCollisionWith(LPCOLLISIONEVENT e)
@@ -102,9 +101,58 @@ void GoldBrick::OnCollisionWith(LPCOLLISIONEVENT e)
     if (state == GOLD_BRICK_STATE_DESTROYED) return;
 
     CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
-    if (dynamic_cast<CMario*>(e->obj) || dynamic_cast<CRaccoonMario*>(e->obj))
+    if (dynamic_cast<CRaccoonMario*>(e->obj))
     {
+        CRaccoonMario* raccoonMario = dynamic_cast<CRaccoonMario*>(e->obj);
+        bool canBreak = false;
+
         if (e->ny < 0) 
+        {
+            canBreak = true;
+        }
+        else if (e->nx != 0 && raccoonMario->IsTailAttacking()) 
+        {
+            float brickCenterY = y;
+
+            float marioLeft, marioTop, marioRight, marioBottom;
+            raccoonMario->GetBoundingBox(marioLeft, marioTop, marioRight, marioBottom);
+
+            float marioCenterY = (marioTop + marioBottom) / 2.0f;
+            float marioLowerHalfTop = marioCenterY;
+
+            if (brickCenterY >= marioLowerHalfTop && abs(brickCenterY - marioCenterY) <= CENTER_THRESHOLD)
+            {
+                canBreak = true;
+            }
+        }
+
+        if (canBreak)
+        {
+            SetState(GOLD_BRICK_STATE_DESTROYED);
+            CEffect* effect = new CEffect(x, y, 100);
+            scene->AddObject(effect);
+            if (type == GOLD_BRICK_TYPE_NORMAL)
+            {
+                float angle45 = 3.14159f / 4;
+                scene->AddObject(new GoldPiece(x, y, GOLD_PIECE_SPEED * cos(angle45), -GOLD_PIECE_SPEED * sin(angle45)));
+                scene->AddObject(new GoldPiece(x, y, GOLD_PIECE_SPEED * cos(angle45 + 3.14159f / 2), -GOLD_PIECE_SPEED * sin(angle45 + 3.14159f / 2)));
+                scene->AddObject(new GoldPiece(x, y, GOLD_PIECE_SPEED * cos(angle45 + 3.14159f), -GOLD_PIECE_SPEED * sin(angle45 + 3.14159f)));
+                scene->AddObject(new GoldPiece(x, y, GOLD_PIECE_SPEED * cos(angle45 + 3 * 3.14159f / 2), -GOLD_PIECE_SPEED * sin(angle45 + 3 * 3.14159f / 2)));
+            }
+            else
+            {
+                CQuestionBlock* block = new CQuestionBlock(x, y, QUESTION_BLOCK_TYPE_COIN);
+                block->SetState(QUESTION_BLOCK_STATE_INACTIVE);
+                scene->AddObject(block);
+                float topEdge = y - GOLD_BRICK_BBOX_HEIGHT / 2;
+                PButton* button = new PButton(x, topEdge - P_BUTTON_BBOX_HEIGHT / 2);
+                scene->AddObject(button);
+            }
+        }
+    }
+    else if (dynamic_cast<CMario*>(e->obj))
+    {
+        if (e->ny < 0)
         {
             SetState(GOLD_BRICK_STATE_DESTROYED);
             CEffect* effect = new CEffect(x, y, 100);
@@ -131,20 +179,19 @@ void GoldBrick::OnCollisionWith(LPCOLLISIONEVENT e)
     else if (dynamic_cast<KoopaTroopa*>(e->obj))
     {
         KoopaTroopa* koopa = dynamic_cast<KoopaTroopa*>(e->obj);
-        if (koopa->GetState() == KOOPA_STATE_SHELL_RUNNING && e->nx != 0 && koopa->CanBounce()) 
+        if (koopa->GetState() == KOOPA_STATE_SHELL_RUNNING && e->nx != 0 && koopa->CanBounce())
         {
-
             float koopaX, koopaY;
             koopa->GetPosition(koopaX, koopaY);
             if (abs(koopaY - y) <= CENTER_THRESHOLD)
             {
                 SetState(GOLD_BRICK_STATE_DESTROYED);
-                koopa->ReverseDirection(); 
+                koopa->ReverseDirection();
                 CEffect* effect = new CEffect(x, y, 100);
                 scene->AddObject(effect);
                 if (type == GOLD_BRICK_TYPE_NORMAL)
                 {
-                    float angle45 = 3.14159f / 4; 
+                    float angle45 = 3.14159f / 4;
                     scene->AddObject(new GoldPiece(x, y, GOLD_PIECE_SPEED * cos(angle45), -GOLD_PIECE_SPEED * sin(angle45)));
                     scene->AddObject(new GoldPiece(x, y, GOLD_PIECE_SPEED * cos(angle45 + 3.14159f / 2), -GOLD_PIECE_SPEED * sin(angle45 + 3.14159f / 2)));
                     scene->AddObject(new GoldPiece(x, y, GOLD_PIECE_SPEED * cos(angle45 + 3.14159f), -GOLD_PIECE_SPEED * sin(angle45 + 3.14159f)));
