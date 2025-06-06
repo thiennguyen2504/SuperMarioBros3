@@ -53,7 +53,6 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
         }
         else if (isOnPlatform)
         {
-            // Apply friction when no directional keys are pressed
             if (vx > 0)
             {
                 vx -= MARIO_FRICTION * dt;
@@ -118,7 +117,6 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
     }
     else if (e->nx != 0 && e->obj->IsBlocking())
     {
-        // Only reset vx if not jumping to avoid jerking
         if (isOnPlatform) vx = 0;
     }
 
@@ -764,6 +762,15 @@ void CMario::SetState(int state)
             isSitting = false;
             state = MARIO_STATE_IDLE;
             y -= MARIO_SIT_HEIGHT_ADJUST;
+        }
+        break;
+    case MARIO_STATE_TAIL_ATTACK:
+        if (dynamic_cast<CRaccoonMario*>(this))
+        {
+            CRaccoonMario* raccoonMario = dynamic_cast<CRaccoonMario*>(this);
+            raccoonMario->StartTailAttack();
+            ax = 0.0f; 
+            vx = 0.0f;
         }
         break;
     case MARIO_STATE_IDLE:

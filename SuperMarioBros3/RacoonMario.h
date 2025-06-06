@@ -17,6 +17,8 @@
 #define ID_ANI_RACCOON_MARIO_HOLD_RIGHT 1906
 #define ID_ANI_RACCOON_MARIO_HOLD_LEFT 1913
 #define ID_ANI_RACCOON_MARIO_APPEAR 1914
+#define ID_ANI_RACCOON_MARIO_TAIL_ATTACK_RIGHT 1922
+#define ID_ANI_RACCOON_MARIO_TAIL_ATTACK_LEFT 1921 
 #pragma endregion
 
 class StaticCoin;
@@ -24,6 +26,9 @@ class StaticCoin;
 class CRaccoonMario : public CMario
 {
 protected:
+    BOOLEAN isTailAttacking;
+    ULONGLONG tailAttackStart; 
+    ULONGLONG tailAttackCooldown; 
     virtual int GetAniIdRaccoon();
     void OnHit();
 
@@ -31,7 +36,12 @@ public:
     CRaccoonMario(float x, float y) : CMario(x, y)
     {
         level = MARIO_LEVEL_RACCOON;
+        isTailAttacking = false;
+        tailAttackStart = 0;
+        tailAttackCooldown = 0;
     }
+
+    virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects) override;
     virtual void OnCollisionWith(LPCOLLISIONEVENT e) override;
     virtual void OnCollisionWithGoomba(LPCOLLISIONEVENT e) override;
     virtual void OnCollisionWithCoin(LPCOLLISIONEVENT e) override;
@@ -47,5 +57,14 @@ public:
     virtual void OnCollisionWithLeaf(LPCOLLISIONEVENT e) override;
     virtual void OnHitByKoopa() override;
     virtual void Render() override;
+	virtual void SetState(int state) override;
     virtual void GetBoundingBox(float& left, float& top, float& right, float& bottom) override;
+    float GetRunProgress() { return runProgress; }
+    BOOLEAN IsTailAttacking() const { return isTailAttacking; } 
+	ULONGLONG GetTailAttackCooldown() const { return tailAttackCooldown; }
+	ULONGLONG GetTailAttackStart() const { return tailAttackStart; }
+	void SetTailAttackStart(ULONGLONG start) { tailAttackStart = start; }
+	void SetTailAttackCooldown(ULONGLONG cooldown) { tailAttackCooldown = cooldown; }
+	void StartTailAttack() { isTailAttacking = true; tailAttackStart = GetTickCount64(); }
+	void StopTailAttack() { isTailAttacking = false; }
 };

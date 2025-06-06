@@ -30,17 +30,103 @@ void CRaccoonMario::OnHit()
     Delete();
 }
 
+void CRaccoonMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
+{
+    if (!isAppearing && !isBlinking)
+    {
+        vy += ay * dt;
+
+        if (isRunning && (state == MARIO_STATE_RUNNING_RIGHT || state == MARIO_STATE_RUNNING_LEFT))
+        {
+            runProgress += MARIO_RUN_PROGRESS_ACCEL * dt;
+            if (runProgress > 1.0f) runProgress = 1.0f;
+        }
+        else
+        {
+            runProgress -= MARIO_RUN_PROGRESS_DECAY * dt;
+            if (runProgress < 0.0f) runProgress = 0.0f;
+        }
+
+        float speedRange = MARIO_RUNNING_SPEED - MARIO_WALKING_SPEED;
+        maxVx = (nx > 0) ?
+            MARIO_WALKING_SPEED + speedRange * runProgress :
+            -(MARIO_WALKING_SPEED + speedRange * runProgress);
+
+        LPGAME game = CGame::GetInstance();
+        if (game->IsKeyDown(DIK_L) || game->IsKeyDown(DIK_J))
+        {
+            vx += ax * dt;
+            if (abs(vx) > abs(maxVx)) vx = maxVx;
+        }
+        else if (isOnPlatform)
+        {
+            if (vx > 0)
+            {
+                vx -= MARIO_FRICTION * dt;
+                if (vx < 0) vx = 0;
+            }
+            else if (vx < 0)
+            {
+                vx += MARIO_FRICTION * dt;
+                if (vx > 0) vx = 0;
+            }
+            ax = 0.0f;
+        }
+    }
+
+    if (isTailAttacking && GetTickCount64() - tailAttackStart > MARIO_TAIL_ATTACK_DURATION)
+    {
+        isTailAttacking = false;
+        tailAttackCooldown = GetTickCount64();
+        SetState(MARIO_STATE_IDLE);
+    }
+
+    if (GetTickCount64() - untouchable_start > MARIO_UNTOUCHABLE_TIME)
+    {
+        untouchable_start = 0;
+        untouchable = 0;
+    }
+
+    if (isHolding && heldKoopa)
+    {
+        float marioLeft, marioTop, marioRight, marioBottom;
+        GetBoundingBox(marioLeft, marioTop, marioRight, marioBottom);
+
+        float koopaLeft, koopaTop, koopaRight, koopaBottom;
+        heldKoopa->GetBoundingBox(koopaLeft, koopaTop, koopaRight, koopaBottom);
+
+        float koopaX, koopaY;
+        if (nx > 0)
+        {
+            koopaX = marioRight + (koopaRight - koopaLeft) / 2;
+        }
+        else
+        {
+            koopaX = marioLeft - (koopaRight - koopaLeft) / 2;
+        }
+        koopaY = y;
+
+        heldKoopa->SetPosition(koopaX, koopaY);
+    }
+
+    CCollision::GetInstance()->Process(this, dt, coObjects);
+}
+
 int CRaccoonMario::GetAniIdRaccoon()
 {
     int aniId = -1;
 
-    if (isHolding)
+    if (isTailAttacking)
+    {
+        aniId = (nx > 0) ? ID_ANI_RACCOON_MARIO_TAIL_ATTACK_RIGHT : ID_ANI_RACCOON_MARIO_TAIL_ATTACK_LEFT;
+    }
+    else if (isHolding)
     {
         if (vx == 0)
         {
             aniId = (nx > 0) ? ID_ANI_RACCOON_MARIO_HOLD_RIGHT : ID_ANI_RACCOON_MARIO_HOLD_LEFT;
         }
-        else if (abs(ax) == MARIO_ACCEL_RUN_X)
+        else if (abs(ax) == MARIO_ACCEL_RUN_X || runProgress >= 0.8f)
         {
             aniId = (nx > 0) ? ID_ANI_RACCOON_MARIO_HOLD_RIGHT : ID_ANI_RACCOON_MARIO_HOLD_LEFT;
         }
@@ -60,9 +146,9 @@ int CRaccoonMario::GetAniIdRaccoon()
             else
             {
                 if (vy < 0)
-                    aniId = (nx >= 0) ? ID_ANI_RACCOON_MARIO_JUMP_RIGHT : ID_ANI_RACCOON_MARIO_JUMP_LEFT;
+                    aniId = (nx > 0) ? ID_ANI_RACCOON_MARIO_JUMP_RIGHT : ID_ANI_RACCOON_MARIO_JUMP_LEFT;
                 else
-                    aniId = (nx >= 0) ? ID_ANI_RACCOON_MARIO_FALL_RIGHT : ID_ANI_RACCOON_MARIO_FALL_LEFT;
+                    aniId = (nx > 0) ? ID_ANI_RACCOON_MARIO_FALL_RIGHT : ID_ANI_RACCOON_MARIO_FALL_LEFT;
             }
         }
         else if (isSitting)
@@ -77,7 +163,7 @@ int CRaccoonMario::GetAniIdRaccoon()
         {
             if (ax < 0)
                 aniId = ID_ANI_RACCOON_MARIO_BRACE_RIGHT;
-            else if (ax == MARIO_ACCEL_RUN_X)
+            else if (ax == MARIO_ACCEL_RUN_X || runProgress >= 0.8f)
                 aniId = ID_ANI_RACCOON_MARIO_RUN_RIGHT;
             else if (ax == MARIO_ACCEL_WALK_X)
                 aniId = ID_ANI_RACCOON_MARIO_WALK_RIGHT;
@@ -86,7 +172,7 @@ int CRaccoonMario::GetAniIdRaccoon()
         {
             if (ax > 0)
                 aniId = ID_ANI_RACCOON_MARIO_BRACE_LEFT;
-            else if (ax == -MARIO_ACCEL_RUN_X)
+            else if (ax == -MARIO_ACCEL_RUN_X || runProgress >= 0.8f)
                 aniId = ID_ANI_RACCOON_MARIO_RUN_LEFT;
             else if (ax == -MARIO_ACCEL_WALK_X)
                 aniId = ID_ANI_RACCOON_MARIO_WALK_LEFT;
@@ -97,6 +183,21 @@ int CRaccoonMario::GetAniIdRaccoon()
         aniId = (nx > 0) ? ID_ANI_RACCOON_MARIO_IDLE_RIGHT : ID_ANI_RACCOON_MARIO_IDLE_LEFT;
 
     return aniId;
+}
+
+void CRaccoonMario::SetState(int state)
+{
+    if (state == MARIO_STATE_TAIL_ATTACK)
+    {
+        isTailAttacking = true;
+        tailAttackStart = GetTickCount64();
+        ax = 0.0f;
+        vx = 0.0f;
+    }
+    else
+    {
+        CMario::SetState(state);
+    }
 }
 
 void CRaccoonMario::OnCollisionWith(LPCOLLISIONEVENT e)
@@ -141,7 +242,12 @@ void CRaccoonMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
 {
     CGoomba* goomba = dynamic_cast<CGoomba*>(e->obj);
 
-    if (e->ny < 0)
+    if (isTailAttacking && goomba->GetState() != ENEMY_STATE_DIE)
+    {
+        goomba->SetState(ENEMY_STATE_DIE);
+        vy = -MARIO_JUMP_DEFLECT_SPEED;
+    }
+    else if (e->ny < 0)
     {
         if (goomba->GetState() != ENEMY_STATE_DIE)
         {
@@ -191,7 +297,28 @@ void CRaccoonMario::OnCollisionWithKoopaTroopa(LPCOLLISIONEVENT e)
 {
     KoopaTroopa* koopa = dynamic_cast<KoopaTroopa*>(e->obj);
 
-    if (e->ny < 0)
+    if (isTailAttacking)
+    {
+        if (koopa->GetState() == KOOPA_STATE_WALKING)
+        {
+            koopa->SetState(KOOPA_STATE_SHELL_IDLE);
+            vy = -MARIO_JUMP_DEFLECT_SPEED;
+        }
+        else if (koopa->GetState() == KOOPA_STATE_SHELL_RUNNING)
+        {
+            koopa->SetState(KOOPA_STATE_SHELL_IDLE);
+            vy = -MARIO_JUMP_DEFLECT_SPEED;
+        }
+        else if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE && !koopa->IsIdleCooldownActive())
+        {
+            float koopaX, koopaY;
+            koopa->GetPosition(koopaX, koopaY);
+            koopa->SetDirection(x > koopaX ? -1 : 1);
+            koopa->SetState(KOOPA_STATE_SHELL_RUNNING);
+            vy = -MARIO_JUMP_DEFLECT_SPEED;
+        }
+    }
+    else if (e->ny < 0)
     {
         if (koopa->GetState() == KOOPA_STATE_WALKING)
         {
@@ -258,7 +385,18 @@ void CRaccoonMario::OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e)
 {
     RedParaGoomba* paraGoomba = dynamic_cast<RedParaGoomba*>(e->obj);
 
-    if (e->ny < 0)
+    if (isTailAttacking && paraGoomba->GetState() != RED_PARAGOOMBA_STATE_DIE)
+    {
+        CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+        float gx, gy;
+        paraGoomba->GetPosition(gx, gy);
+        CGoomba* goomba = new CGoomba(gx, gy - RED_PARAGOOMBA_BBOX_HEIGHT / 2, GOOMBA_TYPE_RED);
+        goomba->SetState(ENEMY_STATE_WALKING);
+        scene->AddObject(goomba);
+        paraGoomba->Delete();
+        vy = -MARIO_JUMP_DEFLECT_SPEED;
+    }
+    else if (e->ny < 0)
     {
         CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
         float gx, gy;
@@ -282,7 +420,18 @@ void CRaccoonMario::OnCollisionWithGreenParaKoopa(LPCOLLISIONEVENT e)
 {
     GreenParaKoopa* paraKoopa = dynamic_cast<GreenParaKoopa*>(e->obj);
 
-    if (e->ny < 0)
+    if (isTailAttacking && paraKoopa->GetState() != GREEN_PARAKOOPA_STATE_DIE)
+    {
+        CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+        float kx, ky;
+        paraKoopa->GetPosition(kx, ky);
+        GreenKoopaTroopa* koopa = new GreenKoopaTroopa(kx, ky - GREEN_PARAKOOPA_BBOX_HEIGHT / 2);
+        koopa->SetState(KOOPA_STATE_WALKING);
+        scene->AddObject(koopa);
+        paraKoopa->Delete();
+        vy = -MARIO_JUMP_DEFLECT_SPEED;
+    }
+    else if (e->ny < 0)
     {
         if (paraKoopa->GetState() != GREEN_PARAKOOPA_STATE_DIE)
         {
@@ -401,6 +550,13 @@ void CRaccoonMario::GetBoundingBox(float& left, float& top, float& right, float&
         top = y - MARIO_BIG_SITTING_BBOX_HEIGHT / 2;
         right = left + MARIO_BIG_SITTING_BBOX_WIDTH;
         bottom = top + MARIO_BIG_SITTING_BBOX_HEIGHT;
+    }
+    else if (isTailAttacking)
+    {
+        left = x - (MARIO_RACCOON_BBOX_WIDTH / 2 + MARIO_TAIL_ATTACK_BBOX_WIDTH_EXTEND);
+        top = y - MARIO_RACCOON_BBOX_HEIGHT / 2;
+        right = x + (MARIO_RACCOON_BBOX_WIDTH / 2 + MARIO_TAIL_ATTACK_BBOX_WIDTH_EXTEND);
+        bottom = top + MARIO_RACCOON_BBOX_HEIGHT;
     }
     else
     {
