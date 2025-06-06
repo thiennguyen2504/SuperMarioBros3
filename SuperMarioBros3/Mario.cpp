@@ -8,11 +8,13 @@
 #include "Fireball.h"
 #include "KoopaTroopa.h"
 #include "RedParaGoomba.h"
+#include "GreenParaKoopa.h"
 #include "Mushroom.h"
 #include "Leaf.h"
 #include "RacoonMario.h"
 #include "Collision.h"
 #include "PlayScene.h"
+#include "GreenKoopaTroopa.h"
 
 void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
@@ -60,7 +62,6 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
             }
             ax = 0.0f;
         }
-
     }
 
     if (GetTickCount64() - untouchable_start > MARIO_UNTOUCHABLE_TIME)
@@ -131,6 +132,8 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
         OnCollisionWithKoopaTroopa(e);
     else if (dynamic_cast<RedParaGoomba*>(e->obj))
         OnCollisionWithRedParaGoomba(e);
+    else if (dynamic_cast<GreenParaKoopa*>(e->obj))
+        OnCollisionWithGreenParaKoopa(e);
     else if (dynamic_cast<CMushroom*>(e->obj))
         OnCollisionWithMushroom(e);
     else if (dynamic_cast<CLeaf*>(e->obj))
@@ -314,6 +317,44 @@ void CMario::OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e)
     else if (e->nx != 0)
     {
         if (untouchable == 0 && paraGoomba->GetState() != RED_PARAGOOMBA_STATE_DIE)
+        {
+            if (level > MARIO_LEVEL_SMALL)
+            {
+                level = MARIO_LEVEL_SMALL;
+                StartUntouchable();
+            }
+            else
+            {
+                SetState(MARIO_STATE_DIE);
+            }
+        }
+    }
+}
+
+void CMario::OnCollisionWithGreenParaKoopa(LPCOLLISIONEVENT e)
+{
+    GreenParaKoopa* paraKoopa = dynamic_cast<GreenParaKoopa*>(e->obj);
+
+    if (e->ny < 0)
+    {
+        if (paraKoopa->GetState() != GREEN_PARAKOOPA_STATE_DIE)
+        {
+            CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+            float kx, ky;
+            paraKoopa->GetPosition(kx, ky);
+            GreenKoopaTroopa* koopa = new GreenKoopaTroopa(kx, ky - GREEN_PARAKOOPA_BBOX_HEIGHT / 2);
+            koopa->SetState(KOOPA_STATE_WALKING);
+            if (scene)
+            {
+                scene->AddObject(koopa);
+            }
+            paraKoopa->Delete();
+            vy = -MARIO_JUMP_DEFLECT_SPEED;
+        }
+    }
+    else
+    {
+        if (untouchable == 0 && paraKoopa->GetState() != GREEN_PARAKOOPA_STATE_DIE)
         {
             if (level > MARIO_LEVEL_SMALL)
             {

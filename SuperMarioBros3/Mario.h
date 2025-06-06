@@ -1,25 +1,25 @@
-#pragma once
+ï»¿#pragma once
 #include "GameObject.h"
 #include "Animation.h"
 #include "Animations.h"
 #include "Game.h"
 
 #define MARIO_WALKING_SPEED		0.05f
-#define MARIO_RUNNING_SPEED		0.15f // T?ng t? 0.13f ?? ch?y nhanh h?n
+#define MARIO_RUNNING_SPEED		0.15f 
 
 #define MARIO_ACCEL_WALK_X	0.00025f
 #define MARIO_ACCEL_RUN_X	0.000385f
 
-#define MARIO_JUMP_SPEED_Y		0.35f // T?ng t? 0.32f ?? nh?y cao h?n
-#define MARIO_JUMP_RUN_SPEED_Y	0.41f // T?ng t? 0.38f ?? nh?y cao h?n khi ch?y
+#define MARIO_JUMP_SPEED_Y		0.35f 
+#define MARIO_JUMP_RUN_SPEED_Y	0.41f
 
 #define MARIO_GRAVITY			0.0009f
 
-#define MARIO_JUMP_DEFLECT_SPEED  0.3f
+#define MARIO_JUMP_DEFLECT_SPEED 0.3f
 
 #define MARIO_RUN_PROGRESS_ACCEL 0.0003f
 #define MARIO_RUN_PROGRESS_DECAY 0.0007f
-#define MARIO_FRICTION			0.0005f // Ma sát khi d?ng ch?y
+#define MARIO_FRICTION			0.0005f 
 
 #define MARIO_STATE_DIE				-10
 #define MARIO_STATE_IDLE			0
@@ -117,110 +117,112 @@
 
 class KoopaTroopa;
 class RedParaGoomba;
+class GreenParaKoopa;
 
 class CMario : public CGameObject
 {
 protected:
-	BOOLEAN isSitting;
-	float maxVx;
-	float ax;
-	float ay;
+    BOOLEAN isSitting;
+    float maxVx;
+    float ax;
+    float ay;
 
-	int level;
-	int untouchable;
-	ULONGLONG untouchable_start;
-	BOOLEAN isOnPlatform;
-	int coin;
+    int level;
+    int untouchable;
+    ULONGLONG untouchable_start;
+    BOOLEAN isOnPlatform;
+    int coin;
 
-	KoopaTroopa* heldKoopa;
-	BOOLEAN isHolding;
-	BOOLEAN isRunning;
+    KoopaTroopa* heldKoopa;
+    BOOLEAN isHolding;
+    BOOLEAN isRunning;
 
-	BOOLEAN isBlinking;
-	ULONGLONG blinkStart;
-	BOOLEAN isLocked;
+    BOOLEAN isBlinking;
+    ULONGLONG blinkStart;
+    BOOLEAN isLocked;
 
-	BOOLEAN isAppearing;
-	ULONGLONG appearStart;
-	float originalY;
-	float originalX;
+    BOOLEAN isAppearing;
+    ULONGLONG appearStart;
+    float originalY;
+    float originalX;
 
-	float runProgress; // 0.0f to 1.0f, tracks running progress
+    float runProgress; // 0.0f to 1.0f, tracks running progress
 
-	virtual void OnCollisionWithGoomba(LPCOLLISIONEVENT e);
-	virtual void OnCollisionWithCoin(LPCOLLISIONEVENT e);
-	virtual void OnCollisionWithPortal(LPCOLLISIONEVENT e);
-	virtual void OnCollisionWithVenusFire(LPCOLLISIONEVENT e);
-	virtual void OnCollisionWithFireball(LPCOLLISIONEVENT e);
-	virtual void OnCollisionWithKoopaTroopa(LPCOLLISIONEVENT e);
-	virtual void OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e);
-	virtual void OnCollisionWithMushroom(LPCOLLISIONEVENT e);
-	virtual void OnCollisionWithLeaf(LPCOLLISIONEVENT e);
-	virtual int GetAniIdBig();
-	virtual int GetAniIdSmall();
+    virtual void OnCollisionWithGoomba(LPCOLLISIONEVENT e);
+    virtual void OnCollisionWithCoin(LPCOLLISIONEVENT e);
+    virtual void OnCollisionWithPortal(LPCOLLISIONEVENT e);
+    virtual void OnCollisionWithVenusFire(LPCOLLISIONEVENT e);
+    virtual void OnCollisionWithFireball(LPCOLLISIONEVENT e);
+    virtual void OnCollisionWithKoopaTroopa(LPCOLLISIONEVENT e);
+    virtual void OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e);
+    virtual void OnCollisionWithGreenParaKoopa(LPCOLLISIONEVENT e);
+    virtual void OnCollisionWithMushroom(LPCOLLISIONEVENT e);
+    virtual void OnCollisionWithLeaf(LPCOLLISIONEVENT e);
+    virtual int GetAniIdBig();
+    virtual int GetAniIdSmall();
 
 public:
-	CMario(float x, float y) : CGameObject(x, y)
-	{
-		isSitting = false;
-		maxVx = 0.0f;
-		ax = 0.0f;
-		ay = MARIO_GRAVITY;
+    CMario(float x, float y) : CGameObject(x, y)
+    {
+        isSitting = false;
+        maxVx = 0.0f;
+        ax = 0.0f;
+        ay = MARIO_GRAVITY;
 
-		level = MARIO_LEVEL_SMALL;
-		untouchable = 0;
-		untouchable_start = -1;
-		isOnPlatform = false;
-		coin = 0;
+        level = MARIO_LEVEL_SMALL;
+        untouchable = 0;
+        untouchable_start = -1;
+        isOnPlatform = false;
+        coin = 0;
 
-		heldKoopa = nullptr;
-		isHolding = false;
-		isRunning = false;
+        heldKoopa = nullptr;
+        isHolding = false;
+        isRunning = false;
 
-		isBlinking = false;
-		blinkStart = 0;
-		isLocked = false;
+        isBlinking = false;
+        blinkStart = 0;
+        isLocked = false;
 
-		isAppearing = false;
-		appearStart = 0;
-		originalY = y;
-		originalX = x;
+        isAppearing = false;
+        appearStart = 0;
+        originalY = y;
+        originalX = x;
 
-		runProgress = 0.0f;
-	}
-	virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
-	virtual void Render();
-	virtual void SetState(int state);
-	virtual void OnHitByKoopa();
+        runProgress = 0.0f;
+    }
+    virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
+    virtual void Render();
+    virtual void SetState(int state);
+    virtual void OnHitByKoopa();
 
-	BOOLEAN IsUntouchable() { return untouchable; }
-	BOOLEAN IsHolding() const { return isHolding; }
-	BOOLEAN IsRunning() const { return isRunning; }
-	void SetRunning(BOOLEAN running) { isRunning = running; }
-	KoopaTroopa* GetHeldKoopa() { return heldKoopa; }
-	void SetHeldKoopa(KoopaTroopa* koopa) { heldKoopa = koopa; isHolding = (koopa != nullptr); }
-	int GetDirection() const { return nx; }
-	BOOLEAN IsKeyDown(int KeyCode) { return CGame::GetInstance()->IsKeyDown(KeyCode); }
-	int IsCollidable()
-	{
-		return (state != MARIO_STATE_DIE);
-	}
+    BOOLEAN IsUntouchable() { return untouchable; }
+    BOOLEAN IsHolding() const { return isHolding; }
+    BOOLEAN IsRunning() const { return isRunning; }
+    void SetRunning(BOOLEAN running) { isRunning = running; }
+    KoopaTroopa* GetHeldKoopa() { return heldKoopa; }
+    void SetHeldKoopa(KoopaTroopa* koopa) { heldKoopa = koopa; isHolding = (koopa != nullptr); }
+    int GetDirection() const { return nx; }
+    BOOLEAN IsKeyDown(int KeyCode) { return CGame::GetInstance()->IsKeyDown(KeyCode); }
+    int IsCollidable()
+    {
+        return (state != MARIO_STATE_DIE);
+    }
 
-	int IsBlocking() { return (state != MARIO_STATE_DIE && untouchable == 0); }
+    int IsBlocking() { return (state != MARIO_STATE_DIE && untouchable == 0); }
 
-	void OnNoCollision(DWORD dt);
-	void OnCollisionWith(LPCOLLISIONEVENT e);
+    void OnNoCollision(DWORD dt);
+    void OnCollisionWith(LPCOLLISIONEVENT e);
 
-	void SetLevel(int l);
-	void StartUntouchable() { untouchable = 1; untouchable_start = GetTickCount64(); }
-	void StartAppearing() { isAppearing = true; appearStart = GetTickCount64(); }
+    void SetLevel(int l);
+    void StartUntouchable() { untouchable = 1; untouchable_start = GetTickCount64(); }
+    void StartAppearing() { isAppearing = true; appearStart = GetTickCount64(); }
 
-	void GetBoundingBox(float& left, float& top, float& right, float& bottom);
-	float GetVy() { return vy; }
-	void SetVy(float v) { vy = v; }
-	int GetLevel() { return level; }
-	void SetNx(int nx) { this->nx = nx; }
-	float GetVx() { return vx; }
-	float GetRunProgress() { return runProgress; }
-	bool GetIsOnPlatform() { return isOnPlatform; }
+    void GetBoundingBox(float& left, float& top, float& right, float& bottom);
+    float GetVy() { return vy; }
+    void SetVy(float v) { vy = v; }
+    int GetLevel() { return level; }
+    void SetNx(int nx) { this->nx = nx; }
+    float GetVx() { return vx; }
+    float GetRunProgress() { return runProgress; }
+    bool GetIsOnPlatform() { return isOnPlatform; }
 };
