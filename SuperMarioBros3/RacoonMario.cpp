@@ -14,6 +14,7 @@
 #include "Mario.h"
 #include "Portal.h"
 #include "GreenKoopaTroopa.h"
+#include "PButton.h"
 #include "HUD.h"
 
 void CRaccoonMario::OnHit()
@@ -230,6 +231,8 @@ void CRaccoonMario::OnCollisionWith(LPCOLLISIONEVENT e)
         OnCollisionWithGreenParaKoopa(e);
     else if (dynamic_cast<Piranha*>(e->obj))
         OnCollisionWithPiranha(e);
+    else if (dynamic_cast<PButton*>(e->obj))
+        OnCollisionWithPButton(e); 
     else if (dynamic_cast<StaticCoin*>(e->obj))
         OnCollisionWithStaticCoin(e);
     else if (dynamic_cast<CMushroom*>(e->obj))
@@ -502,6 +505,12 @@ void CRaccoonMario::OnCollisionWithStaticCoin(LPCOLLISIONEVENT e)
     CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
     CHUD* hud = scene->GetHUD();
     if (hud) hud->AddCoin();
+}
+
+void CRaccoonMario::OnCollisionWithPButton(LPCOLLISIONEVENT e)
+{
+    PButton* button = dynamic_cast<PButton*>(e->obj);
+    button->SetState(P_BUTTON_STATE_PRESSED);
 }
 
 void CRaccoonMario::OnCollisionWithPortal(LPCOLLISIONEVENT e)

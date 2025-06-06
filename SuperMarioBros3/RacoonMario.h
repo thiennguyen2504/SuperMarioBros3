@@ -22,13 +22,14 @@
 #pragma endregion
 
 class StaticCoin;
+class PButton;
 
 class CRaccoonMario : public CMario
 {
 protected:
     BOOLEAN isTailAttacking;
-    ULONGLONG tailAttackStart; 
-    ULONGLONG tailAttackCooldown; 
+    ULONGLONG tailAttackStart;
+    ULONGLONG tailAttackCooldown;
     virtual int GetAniIdRaccoon();
     void OnHit();
 
@@ -52,19 +53,20 @@ public:
     virtual void OnCollisionWithGreenParaKoopa(LPCOLLISIONEVENT e) override;
     virtual void OnCollisionWithPiranha(LPCOLLISIONEVENT e) override;
     virtual void OnCollisionWithStaticCoin(LPCOLLISIONEVENT e);
+    virtual void OnCollisionWithPButton(LPCOLLISIONEVENT e);
     virtual void OnCollisionWithPortal(LPCOLLISIONEVENT e) override;
     virtual void OnCollisionWithMushroom(LPCOLLISIONEVENT e) override;
     virtual void OnCollisionWithLeaf(LPCOLLISIONEVENT e) override;
     virtual void OnHitByKoopa() override;
     virtual void Render() override;
-	virtual void SetState(int state) override;
+    virtual void SetState(int state) override;
     virtual void GetBoundingBox(float& left, float& top, float& right, float& bottom) override;
     float GetRunProgress() { return runProgress; }
-    BOOLEAN IsTailAttacking() const { return isTailAttacking; } 
-	ULONGLONG GetTailAttackCooldown() const { return tailAttackCooldown; }
-	ULONGLONG GetTailAttackStart() const { return tailAttackStart; }
-	void SetTailAttackStart(ULONGLONG start) { tailAttackStart = start; }
-	void SetTailAttackCooldown(ULONGLONG cooldown) { tailAttackCooldown = cooldown; }
-	void StartTailAttack() { isTailAttacking = true; tailAttackStart = GetTickCount64(); }
-	void StopTailAttack() { isTailAttacking = false; }
+    BOOLEAN IsTailAttacking() const { return isTailAttacking; }
+    ULONGLONG GetTailAttackCooldown() const { return tailAttackCooldown; }
+    ULONGLONG GetTailAttackStart() const { return tailAttackStart; }
+    void SetTailAttackStart(ULONGLONG start) { tailAttackStart = start; }
+    void SetTailAttackCooldown(ULONGLONG cooldown) { tailAttackCooldown = cooldown; }
+    void StartTailAttack() { isTailAttacking = true; tailAttackStart = GetTickCount64(); }
+    void StopTailAttack() { isTailAttacking = false; }
 };

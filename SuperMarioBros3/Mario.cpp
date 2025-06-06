@@ -22,7 +22,14 @@
 
 void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
-    if (!isAppearing && !isBlinking)
+    if (GetTickCount64() - untouchable_start > MARIO_UNTOUCHABLE_TIME)
+    {
+        untouchable_start = 0;
+        untouchable = 0;
+    }
+
+    // Luôn cập nhật vận tốc khi isHolding, bỏ qua isBlinking/isAppearing
+    if (!isLocked) // Chỉ khóa khi thực sự cần (ví dụ: chuyển cảnh)
     {
         vy += ay * dt;
 
@@ -65,12 +72,6 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
             }
             ax = 0.0f;
         }
-    }
-
-    if (GetTickCount64() - untouchable_start > MARIO_UNTOUCHABLE_TIME)
-    {
-        untouchable_start = 0;
-        untouchable = 0;
     }
 
     if (isHolding && heldKoopa)
@@ -769,7 +770,7 @@ void CMario::SetState(int state)
         {
             CRaccoonMario* raccoonMario = dynamic_cast<CRaccoonMario*>(this);
             raccoonMario->StartTailAttack();
-            ax = 0.0f; 
+            ax = 0.0f;
             vx = 0.0f;
         }
         break;
