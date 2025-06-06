@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "debug.h"
 #include "Game.h"
 #include "Textures.h"
@@ -20,10 +20,8 @@
 #include "QuestionBlock.h"
 #include "Leaf.h"
 #include "HUD.h"
-#include "Effect.h" // Thêm include cho CEffect
+#include "Effect.h"
 
-#define GAME_MARGIN 10.0f
-#define HUD_HEIGHT 26.0f
 #define BACKGROUND_COLOR D3DXCOLOR(156.0f/255, 252.0f/255, 240.0f/255, 100.0f)
 
 class CPlayScene : public CScene
@@ -38,12 +36,10 @@ protected:
 	void _ParseSection_ANIMATIONS(string line);
 	void _ParseSection_ASSETS(string line);
 	void _ParseSection_OBJECTS(string line);
-
 	void LoadAssets(LPCWSTR assetFile);
 
 public:
 	CPlayScene(int id, LPCWSTR filePath);
-
 	virtual void Load();
 	virtual void Update(DWORD dt);
 	virtual void Render();
@@ -51,13 +47,11 @@ public:
 
 	void SetPlayer(LPGAMEOBJECT player) { this->player = player; }
 	LPGAMEOBJECT GetPlayer() { return player; }
-	LPHUD GetHUD() { return hud; } 
+	LPHUD GetHUD() { return hud; }
 
 	void AddObject(LPGAMEOBJECT obj) { newObjects.push_back(obj); }
-
 	void Clear();
 	void PurgeDeletedObjects();
-
 	static bool IsGameObjectDeleted(const LPGAMEOBJECT& o);
 };
 

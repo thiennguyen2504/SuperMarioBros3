@@ -1,4 +1,5 @@
 #include "Enemy.h"
+#include "debug.h"
 
 Enemy::Enemy(float x, float y) : CGameObject(x, y)
 {
@@ -14,7 +15,7 @@ void Enemy::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
     if ((state == ENEMY_STATE_DIE) && (GetTickCount64() - die_start > ENEMY_DIE_TIMEOUT))
     {
-        isDeleted = true;
+        Delete();
         return;
     }
 

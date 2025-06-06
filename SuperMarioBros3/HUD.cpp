@@ -4,7 +4,7 @@
 #include "PlayScene.h"
 #include "Mario.h"
 #include <cmath>
-
+#define HUD_HEIGHT 26.0f // Height of the HUD area
 CHUD::CHUD()
 {
 	// Get window dimensions
