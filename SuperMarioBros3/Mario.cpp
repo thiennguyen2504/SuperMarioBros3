@@ -469,6 +469,10 @@ void CMario::OnCollisionWithMushroom(LPCOLLISIONEVENT e)
     if (level == MARIO_LEVEL_SMALL && mushroom->GetType() == MUSHROOM_TYPE_RED)
     {
         SetLevel(MARIO_LEVEL_BIG);
+		CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+        scene->GetHUD()->AddScore(1000);
+        CEffect* effect = new CEffect(x, y, 1000);
+        scene->AddObject(effect);
     }
     else {
         CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
@@ -486,6 +490,9 @@ void CMario::OnCollisionWithLeaf(LPCOLLISIONEVENT e)
     {
         CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
         CRaccoonMario* raccoonMario = new CRaccoonMario(x, y);
+		scene->GetHUD()->AddScore(1000);
+		CEffect* effect = new CEffect(x, y, 1000);
+		scene->AddObject(effect);
         raccoonMario->SetState(state);
         raccoonMario->SetSpeed(vx, vy);
         raccoonMario->SetNx(nx);
@@ -740,7 +747,6 @@ void CMario::Render()
 
 void CMario::SetState(int state)
 {
-    // Bỏ qua kiểm tra isLocked cho trạng thái đi ống
     if (this->state == MARIO_STATE_DIE) return;
 
     int prevNx = nx;

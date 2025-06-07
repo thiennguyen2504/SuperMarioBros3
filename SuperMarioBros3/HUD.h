@@ -15,7 +15,7 @@ class CHUD
 protected:
     float x, y;
     LPSPRITE hudSprite;
-    std::vector<int> cardSpriteIds; 
+    std::vector<int> cardSpriteIds;
     LPSPRITE arrowBlackSprite;
     LPSPRITE arrowWhiteSprite;
     LPSPRITE pMeterBlackSprite;
@@ -24,6 +24,7 @@ protected:
     int coins;
     int time;
     int lives;
+    float timeAccumulator; 
 
 public:
     CHUD();
@@ -32,6 +33,8 @@ public:
     void AddCoin() { coins++; }
     void UpdateCard(int spriteId);
     void AddLives() { lives++; }
+    void UpdateTime(DWORD dt);
+    void SetTime(int t) { time = t; timeAccumulator = 0.0f; } 
 };
 
 typedef CHUD* LPHUD;

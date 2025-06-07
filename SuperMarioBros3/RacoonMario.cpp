@@ -701,6 +701,10 @@ void CRaccoonMario::OnCollisionWithMushroom(LPCOLLISIONEVENT e)
 void CRaccoonMario::OnCollisionWithLeaf(LPCOLLISIONEVENT e)
 {
     CLeaf* leaf = dynamic_cast<CLeaf*>(e->obj);
+	CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+	scene->GetHUD()->AddScore(1000);
+	CEffect* effect = new CEffect(x, y, 1000);
+	scene->AddObject(effect);
     leaf->Delete();
 }
 

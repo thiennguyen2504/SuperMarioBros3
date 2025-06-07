@@ -17,8 +17,9 @@ CHUD::CHUD()
 
     score = 0;
     coins = 0;
-    time = 0;
+    time = 300; // Khởi tạo thời gian ban đầu là 300
     lives = 0;
+    timeAccumulator = 0.0f; // Khởi tạo accumulator
 
     hudSprite = CSprites::GetInstance()->Get(ID_SPRITE_HUD);
     cardSpriteIds = { HUD_CARD_EMPTY, HUD_CARD_EMPTY, HUD_CARD_EMPTY };
@@ -26,6 +27,17 @@ CHUD::CHUD()
     arrowWhiteSprite = CSprites::GetInstance()->Get(ID_SPRITE_ARROW_WHITE);
     pMeterBlackSprite = CSprites::GetInstance()->Get(ID_SPRITE_P_METER_BLACK);
     pMeterWhiteSprite = CSprites::GetInstance()->Get(ID_SPRITE_P_METER_WHITE);
+}
+
+void CHUD::UpdateTime(DWORD dt)
+{
+    timeAccumulator += dt; // Tích lũy thời gian (ms)
+    if (timeAccumulator >= 1000.0f) // Nếu đủ 1 giây
+    {
+        time--; // Giảm thời gian
+        timeAccumulator -= 1000.0f; // Trừ đi 1 giây
+        if (time < 0) time = 0; // Giới hạn thời gian không âm
+    }
 }
 
 void CHUD::UpdateCard(int spriteId)

@@ -120,11 +120,10 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
         DebugOut(L"[INFO] Player object has been created!\n");
         break;
     case OBJECT_TYPE_GOOMBA: obj = new CGoomba(x, y); break;
-    case OBJECT_TYPE_BRICK: 
-
+    case OBJECT_TYPE_BRICK:
         obj = new CBrick(x, y, BRICK_TYPE_NORMAL);
         break;
-    
+
     case OBJECT_TYPE_COIN: obj = new CCoin(x, y, false); break;
     case OBJECT_TYPE_GRASS:
     {
@@ -288,12 +287,12 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
         blackBackground = obj;
         break;
     }
-	case OBJECT_TYPE_HIDDEN_BRICK:
-	{   
+    case OBJECT_TYPE_HIDDEN_BRICK:
+    {
         int length = atoi(tokens[3].c_str());
-		obj = new CHiddenBrick(x, y, length);
-		break;
-	}
+        obj = new CHiddenBrick(x, y, length);
+        break;
+    }
     case OBJECT_TYPE_CARD:
     {
         obj = new Card(x, y);
@@ -370,14 +369,14 @@ void CPlayScene::Update(DWORD dt)
 {
     newObjects.clear();
     PurgeDeletedObjects();
-
+    hud->UpdateTime(dt);
     // Tính phạm vi kích hoạt dựa trên camera
     float cx, cy, playerX, playerY;
     CGame* game = CGame::GetInstance();
     float backBufferWidth = game->GetBackBufferWidth();
     float backBufferHeight = game->GetBackBufferHeight();
     const float CAMERA_RIGHT_LIMIT = 2800.0f;
-    const float CAMERA_BOTTOM_EDGE = 0.0f; 
+    const float CAMERA_BOTTOM_EDGE = 0.0f;
 
     if (!player)
     {
@@ -387,13 +386,11 @@ void CPlayScene::Update(DWORD dt)
     else
     {
         player->GetPosition(playerX, playerY);
-        DebugOut(L"[DEBUG] Player position: (%f, %f)\n", playerX, playerY);
         cx = playerX - backBufferWidth / 2;
         cy = playerY - backBufferHeight / 2;
-        if (cx < 0) cx = 0; 
-        //if (cx > CAMERA_RIGHT_LIMIT - backBufferWidth) cx = CAMERA_RIGHT_LIMIT - backBufferWidth; 
-        //
-        // if (cy > CAMERA_BOTTOM_EDGE) cy = CAMERA_BOTTOM_EDGE;
+        if (cx < 0) cx = 0;
+        if (cx > CAMERA_RIGHT_LIMIT - backBufferWidth) cx = CAMERA_RIGHT_LIMIT - backBufferWidth;
+        if (cy > CAMERA_BOTTOM_EDGE) cy = CAMERA_BOTTOM_EDGE;
         game->SetCamPos(cx, cy);
     }
     const float ENEMY_UPDATE_MARGIN = 20.0f;
@@ -405,11 +402,11 @@ void CPlayScene::Update(DWORD dt)
         if (objects[i] && !objects[i]->IsDeleted())
         {
             KoopaTroopa* koopa = dynamic_cast<KoopaTroopa*>(objects[i]);
-            if (koopa)
+            if (koopa && koopa->GetState() == KOOPA_STATE_SHELL_RUNNING)
             {
                 float ex, ey;
                 koopa->GetPosition(ex, ey);
-                if (ex < activeLeft || ex > activeRight)
+                if (ex < cx - backBufferWidth / 2 || ex > cx + backBufferWidth * 1.5f)
                 {
                     koopa->Delete();
                 }
@@ -442,9 +439,10 @@ void CPlayScene::Update(DWORD dt)
         }
     }
 
+    // Tái tạo KoopaTroopa khi quay lại vùng ban đầu
     for (auto it = deletedKoopaSpawns.begin(); it != deletedKoopaSpawns.end(); )
     {
-        if (it->startX < activeLeft || it->startX > activeRight)
+        if (it->startX >= activeLeft && it->startX <= activeRight)
         {
             bool koopaExists = false;
             for (const auto& obj : objects)

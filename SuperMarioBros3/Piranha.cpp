@@ -6,6 +6,7 @@
 #include "PlayScene.h"
 #include "debug.h"
 
+
 Piranha::Piranha(float x, float y) : Enemy(x, y)
 {
     this->waitTimer = 0;
@@ -173,6 +174,7 @@ void Piranha::OnCollisionWith(LPCOLLISIONEVENT e)
         if (e->nx != 0 && raccoonMario->IsTailAttacking())
         {
             SetState(PIRANHA_STATE_DIE);
+            
         }
     }
     else if (dynamic_cast<KoopaTroopa*>(e->obj))
