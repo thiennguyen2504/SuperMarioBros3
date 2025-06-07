@@ -33,8 +33,23 @@ void CGrass::Render()
 			sprites->Get(GRASS_SPRITE_BODY_MID)->DrawWithScale(baseX - (GRASS_BODY_WIDTH / 2.0f), bodyY, GRASS_SCALE);
 			sprites->Get(GRASS_SPRITE_BODY_RIGHT)->DrawWithScale(baseX + (GRASS_BODY_WIDTH / 2.0f), bodyY, GRASS_SCALE);
 		}
+		else if (type == BLACK_GRASS_TYPE_LEFT) {
+			sprites->Get(BLACK_GRASS_SPRITE_BODY_LEFT)->DrawWithScale(baseX - (GRASS_BODY_WIDTH / 2.0f), bodyY, GRASS_SCALE);
+			sprites->Get(BLACK_GRASS_SPRITE_BODY_MID)->DrawWithScale(baseX + (GRASS_BODY_WIDTH / 2.0f), bodyY, GRASS_SCALE);
+		}
+		else if (type == BLACK_GRASS_TYPE_RIGHT) {
+			sprites->Get(BLACK_GRASS_SPRITE_BODY_MID)->DrawWithScale(baseX - (GRASS_BODY_WIDTH / 2.0f), bodyY, GRASS_SCALE);
+			sprites->Get(BLACK_GRASS_SPRITE_BODY_RIGHT)->DrawWithScale(baseX + (GRASS_BODY_WIDTH / 2.0f), bodyY, GRASS_SCALE);
+		}
+		else if (type == BLACK_GRASS_TYPE_MID) {
+			sprites->Get(BLACK_GRASS_SPRITE_BODY_LEFT)->DrawWithScale(baseX - (GRASS_BODY_WIDTH / 2.0f), bodyY, GRASS_SCALE);
+			sprites->Get(BLACK_GRASS_SPRITE_BODY_RIGHT)->DrawWithScale(baseX + (GRASS_BODY_WIDTH / 2.0f), bodyY, GRASS_SCALE);
+		}
 	}
 
 	float headY = baseY - height * GRASS_BODY_HEIGHT - GRASS_HEAD_HEIGHT;
-	sprites->Get(GRASS_SPRITE_HEAD)->DrawWithScale(baseX, headY, GRASS_SCALE);
+	if (type == GRASS_TYPE_LEFT || type == GRASS_TYPE_MID || type == GRASS_TYPE_RIGHT)
+		sprites->Get(GRASS_SPRITE_HEAD)->DrawWithScale(baseX, headY, GRASS_SCALE);
+	else if (type == BLACK_GRASS_TYPE_LEFT || type == BLACK_GRASS_TYPE_MID || type == BLACK_GRASS_TYPE_RIGHT)
+		sprites->Get(BLACK_GRASS_SPRITE_HEAD)->DrawWithScale(baseX, headY, GRASS_SCALE);
 }

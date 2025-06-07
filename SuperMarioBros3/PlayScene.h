@@ -25,6 +25,7 @@
 #include "Leaf.h"
 #include "HUD.h"
 #include "Effect.h"
+#include "BlackBackground.h"
 
 #define GAME_MARGIN 0.1f
 #define HUD_HEIGHT 26.0f
@@ -46,6 +47,7 @@ protected:
     vector<LPGAMEOBJECT> goldBricks;
     vector<KoopaSpawnInfo> deletedKoopaSpawns;
     LPHUD hud;
+    LPGAMEOBJECT blackBackground;
 
     void _ParseSection_SPRITES(string line);
     void _ParseSection_ANIMATIONS(string line);

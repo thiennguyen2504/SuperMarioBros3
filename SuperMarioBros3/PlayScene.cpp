@@ -36,6 +36,7 @@ CPlayScene::CPlayScene(int id, LPCWSTR filePath) : CScene(id, filePath)
     player = nullptr;
     key_handler = new CSampleKeyHandler(this);
     hud = nullptr;
+    blackBackground = nullptr;
 }
 
 #define SCENE_SECTION_UNKNOWN -1
@@ -261,6 +262,14 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
         obj = new CMapObjects(x, y, sprite_id);
         break;
     }
+    case OBJECT_TYPE_BLACKBACKGROUND:
+    {
+        float mapWidth = (float)atof(tokens[3].c_str());
+        float mapHeight = (float)atof(tokens[4].c_str());
+        obj = new BlackBackground(x, y, mapWidth, mapHeight);
+        blackBackground = obj;
+        break;
+    }
     default:
         DebugOut(L"[ERROR] Invalid object type: %d\n", object_type);
         return;
@@ -346,8 +355,8 @@ void CPlayScene::Update(DWORD dt)
         player->GetPosition(playerX, playerY);
         DebugOut(L"[DEBUG] Player position: (%f, %f)\n", playerX, playerY);
         cx = playerX - backBufferWidth / 2;
-        if (cx < 0) cx = 0; 
-        game->SetCamPos(cx, 0); 
+        if (cx < 0) cx = 0;
+        game->SetCamPos(cx, 0);
     }
     const float ENEMY_UPDATE_MARGIN = 20.0f;
     float activeLeft = cx - ENEMY_UPDATE_MARGIN;
@@ -451,7 +460,6 @@ void CPlayScene::Update(DWORD dt)
         }
     }
 
-
     for (size_t i = 0; i < objects.size(); i++)
     {
         if (objects[i] && !objects[i]->IsDeleted() && objects[i]->GetState() != -1)
@@ -493,6 +501,12 @@ void CPlayScene::Render()
 
     d3dDevice->ClearRenderTargetView(renderTargetView, BACKGROUND_COLOR);
 
+    // Render BlackBackground first
+    if (blackBackground && !blackBackground->IsDeleted())
+    {
+        blackBackground->Render();
+    }
+
     // Render background objects
     for (size_t i = 0; i < objects.size(); i++)
     {
@@ -504,6 +518,7 @@ void CPlayScene::Render()
             !dynamic_cast<CPipe*>(objects[i]) &&
             !dynamic_cast<CBrick*>(objects[i]) &&
             !dynamic_cast<CEffect*>(objects[i]) &&
+            !dynamic_cast<BlackBackground*>(objects[i]) &&
             !objects[i]->IsDeleted())
         {
             objects[i]->Render();
@@ -583,6 +598,11 @@ void CPlayScene::Clear()
     objects.clear();
     goldBricks.clear();
     deletedKoopaSpawns.clear();
+    if (blackBackground != nullptr)
+    {
+        delete blackBackground;
+        blackBackground = nullptr;
+    }
 }
 
 void CPlayScene::Unload()
@@ -599,6 +619,12 @@ void CPlayScene::Unload()
     {
         delete hud;
         hud = nullptr;
+    }
+
+    if (blackBackground != nullptr)
+    {
+        delete blackBackground;
+        blackBackground = nullptr;
     }
 
     objects.clear();

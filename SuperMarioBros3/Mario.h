@@ -12,12 +12,13 @@
 
 #define MARIO_JUMP_SPEED_Y		0.35f 
 #define MARIO_JUMP_RUN_SPEED_Y	0.41f
-#define MARIO_FLY_SPEED_Y		0.35f // Tốc độ bay lên ban đầu
-#define MARIO_FLY_DURATION		2000   // Thời gian bay tối đa (ms)
-#define MARIO_FLY_GRAVITY		0.0003f // Trọng lực khi bay
-#define MARIO_FLY_DROP_GRAVITY	0.0002f // Trọng lực khi rơi chậm
-#define MARIO_FLY_FLAP_FORCE	0.1f   // Lực đẩy lên mỗi lần nhấn S khi bay
-#define MARIO_FLY_DROP_FLAP_FORCE 0.05f // Lực giảm tốc độ rơi mỗi lần nhấn S khi rơi chậm
+#define MARIO_FLY_SPEED_Y		0.35f
+#define MARIO_FLY_DURATION		2000
+#define MARIO_FLY_GRAVITY		0.0003f
+#define MARIO_FLY_DROP_GRAVITY	0.0002f
+#define MARIO_FLY_FLAP_FORCE	0.05f // Giảm từ 0.1f
+#define MARIO_FLY_DROP_FLAP_FORCE 0.05f
+#define MARIO_FLAP_COOLDOWN     50 // Giảm từ 100ms xuống 50ms
 
 #define MARIO_GRAVITY			0.0009f
 
@@ -38,8 +39,8 @@
 #define MARIO_STATE_SIT				600
 #define MARIO_STATE_SIT_RELEASE		601
 #define MARIO_STATE_TAIL_ATTACK		700 
-#define MARIO_STATE_FLY				800 // Trạng thái bay
-#define MARIO_STATE_FLY_DROP		801 // Trạng thái rơi chậm
+#define MARIO_STATE_FLY				800 
+#define MARIO_STATE_FLY_DROP		801 
 
 #pragma region ANIMATION_ID
 #define ID_ANI_MARIO_IDLE_RIGHT 400
@@ -132,7 +133,7 @@ protected:
     ULONGLONG appearStart;
     float originalY;
     float originalX;
-    float runProgress; // 0.0f to 1.0f, tracks running progress
+    float runProgress;
 
     virtual void OnCollisionWithGoomba(LPCOLLISIONEVENT e);
     virtual void OnCollisionWithCoin(LPCOLLISIONEVENT e);

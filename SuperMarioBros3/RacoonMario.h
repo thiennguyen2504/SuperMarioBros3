@@ -31,17 +31,15 @@ class PButton;
 class CRaccoonMario : public CMario
 {
 protected:
-    // Tail attack variables
     BOOLEAN isTailAttacking;
     ULONGLONG tailAttackStart;
     ULONGLONG tailAttackCooldown;
 
-    // Flying variables
     BOOLEAN isFlying;
     ULONGLONG flyStart;
     BOOLEAN canFlap;
-
-    virtual int GetAniIdRaccoon();
+    ULONGLONG flapCooldown;
+    ULONGLONG jumpStartTime; 
 
 
 public:
@@ -54,6 +52,8 @@ public:
         isFlying = false;
         flyStart = 0;
         canFlap = false;
+        flapCooldown = 0;
+        jumpStartTime = 0;
     }
 
     virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects) override;
@@ -76,7 +76,6 @@ public:
     virtual void SetState(int state) override;
     virtual void GetBoundingBox(float& left, float& top, float& right, float& bottom) override;
 
-    // Getters and setters
     float GetRunProgress() { return runProgress; }
     BOOLEAN IsTailAttacking() const { return isTailAttacking; }
     ULONGLONG GetTailAttackCooldown() const { return tailAttackCooldown; }
@@ -86,11 +85,12 @@ public:
     void StartTailAttack() { isTailAttacking = true; tailAttackStart = GetTickCount64(); }
     void StopTailAttack() { isTailAttacking = false; }
     BOOLEAN IsFlying() const { return isFlying; }
-	BOOLEAN IsOnPlatform() const { return isOnPlatform; }
+    virtual int GetAniIdRaccoon();
     void OnHit();
     BOOLEAN CanStartFlying();
     void StartFlying();
     void StopFlying();
     void UpdateFlying(DWORD dt);
     void Flap();
+
 };

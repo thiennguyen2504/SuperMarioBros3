@@ -42,7 +42,10 @@ void CRaccoonMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
             runProgress += MARIO_RUN_PROGRESS_ACCEL * dt;
             if (runProgress > 1.0f) runProgress = 1.0f;
         }
-        else
+        else if (isFlying && GetTickCount64() - flyStart <= 4000) 
+        {
+        }
+        else if (GetTickCount64() - jumpStartTime > 500) 
         {
             runProgress -= MARIO_RUN_PROGRESS_DECAY * dt;
             if (runProgress < 0.0f) runProgress = 0.0f;
@@ -74,7 +77,6 @@ void CRaccoonMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
             ax = 0.0f;
         }
 
-        // Update flying logic
         UpdateFlying(dt);
     }
 
@@ -147,17 +149,26 @@ void CRaccoonMario::UpdateFlying(DWORD dt)
 
 void CRaccoonMario::Flap()
 {
-    if (!canFlap) return;
+    if (GetTickCount64() - flapCooldown < MARIO_FLAP_COOLDOWN) return;
 
-    if (isFlying)
+    flapCooldown = GetTickCount64();
+
+    if (!isOnPlatform)
     {
-        vy -= MARIO_FLY_FLAP_FORCE;
-        if (vy < -MARIO_FLY_SPEED_Y) vy = -MARIO_FLY_SPEED_Y; 
-    }
-    else if (state == MARIO_STATE_FLY_DROP)
-    {
-        vy -= MARIO_FLY_DROP_FLAP_FORCE;
-        if (vy < 0) vy = 0;
+        if (state == MARIO_STATE_JUMP && CanStartFlying() && canFlap)
+        {
+            SetState(MARIO_STATE_FLY);
+        }
+        else if (isFlying && canFlap)
+        {
+            vy -= MARIO_FLY_FLAP_FORCE;
+            if (vy < -MARIO_FLY_SPEED_Y) vy = -MARIO_FLY_SPEED_Y;
+        }
+        else
+        {
+            vy -= MARIO_FLY_DROP_FLAP_FORCE;
+            if (vy < 0) vy = 0;
+        }
     }
 }
 
@@ -259,6 +270,11 @@ void CRaccoonMario::SetState(int state)
     {
         StopFlying();
     }
+    else if (state == MARIO_STATE_JUMP)
+    {
+        jumpStartTime = GetTickCount64();
+        CMario::SetState(state);
+    }
     else
     {
         CMario::SetState(state);
@@ -277,6 +293,10 @@ void CRaccoonMario::OnCollisionWith(LPCOLLISIONEVENT e)
             {
                 isFlying = false;
                 canFlap = false;
+                flyStart = 0;
+                flapCooldown = 0;
+                jumpStartTime = 0;
+                ay = MARIO_GRAVITY;
                 SetState(MARIO_STATE_IDLE);
             }
         }
