@@ -16,6 +16,7 @@
 #include "GreenKoopaTroopa.h"
 #include "PButton.h"
 #include "HUD.h"
+#include "Pipe.h"
 
 void CRaccoonMario::OnHit()
 {
@@ -209,7 +210,11 @@ int CRaccoonMario::GetAniIdRaccoon()
 {
     int aniId = -1;
 
-    if (isTailAttacking)
+    if (state == MARIO_STATE_ENTER_PIPE_DOWN)
+    {
+        aniId = ID_ANI_RACCOON_MARIO_ENTER_PIPE_DOWN;
+    }
+    else if (isTailAttacking)
     {
         aniId = (nx > 0) ? ID_ANI_RACCOON_MARIO_TAIL_ATTACK_RIGHT : ID_ANI_RACCOON_MARIO_TAIL_ATTACK_LEFT;
     }
@@ -369,6 +374,18 @@ void CRaccoonMario::OnCollisionWith(LPCOLLISIONEVENT e)
         OnCollisionWithMushroom(e);
     else if (dynamic_cast<CLeaf*>(e->obj))
         OnCollisionWithLeaf(e);
+    else if (dynamic_cast<CPipe*>(e->obj))
+    {
+        CPipe* pipe = dynamic_cast<CPipe*>(e->obj);
+        if (e->ny < 0 && pipe->CanGo() && IsKeyDown(DIK_K))
+        {
+            SetState(MARIO_STATE_ENTER_PIPE_DOWN);
+        }
+        else if (e->ny > 0 && pipe->CanGo() && IsKeyDown(DIK_I))
+        {
+            SetState(MARIO_STATE_ENTER_PIPE_UP);
+        }
+    }
 }
 
 void CRaccoonMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
@@ -378,6 +395,10 @@ void CRaccoonMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
     if (isTailAttacking && goomba->GetState() != GOOMBA_STATE_DIE && goomba->GetState() != GOOMBA_STATE_HEADSHOT)
     {
         goomba->SetState(GOOMBA_STATE_HEADSHOT);
+        CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+        scene->GetHUD()->AddScore(GOOMBA_SCORE);
+        CEffect* effect = new CEffect(x, y, GOOMBA_SCORE);
+        scene->AddObject(effect);
     }
     else if (e->ny < 0)
     {
@@ -385,6 +406,10 @@ void CRaccoonMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
         {
             goomba->SetState(GOOMBA_STATE_DIE);
             vy = -MARIO_JUMP_DEFLECT_SPEED;
+            CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+            scene->GetHUD()->AddScore(GOOMBA_SCORE);
+            CEffect* effect = new CEffect(x, y, GOOMBA_SCORE);
+            scene->AddObject(effect);
         }
     }
     else
@@ -432,6 +457,10 @@ void CRaccoonMario::OnCollisionWithKoopaTroopa(LPCOLLISIONEVENT e)
     if (isTailAttacking && koopa->GetState() != KOOPA_STATE_HEADSHOT)
     {
         koopa->SetState(KOOPA_STATE_HEADSHOT);
+        CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+        scene->GetHUD()->AddScore(GOOMBA_SCORE);
+        CEffect* effect = new CEffect(x, y, GOOMBA_SCORE);
+        scene->AddObject(effect);
     }
     else if (e->ny < 0)
     {
@@ -439,11 +468,19 @@ void CRaccoonMario::OnCollisionWithKoopaTroopa(LPCOLLISIONEVENT e)
         {
             koopa->SetState(KOOPA_STATE_SHELL_IDLE);
             vy = -MARIO_JUMP_DEFLECT_SPEED;
+            CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+            scene->GetHUD()->AddScore(GOOMBA_SCORE);
+            CEffect* effect = new CEffect(x, y, GOOMBA_SCORE);
+            scene->AddObject(effect);
         }
         else if (koopa->GetState() == KOOPA_STATE_SHELL_RUNNING || koopa->GetState() == KOOPA_STATE_HEADSHOT)
         {
             koopa->SetState(KOOPA_STATE_SHELL_IDLE);
             vy = -MARIO_JUMP_DEFLECT_SPEED;
+            CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+            scene->GetHUD()->AddScore(GOOMBA_SCORE);
+            CEffect* effect = new CEffect(x, y, GOOMBA_SCORE);
+            scene->AddObject(effect);
         }
         else if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE && !koopa->IsIdleCooldownActive())
         {
@@ -652,6 +689,12 @@ void CRaccoonMario::OnCollisionWithPortal(LPCOLLISIONEVENT e)
 void CRaccoonMario::OnCollisionWithMushroom(LPCOLLISIONEVENT e)
 {
     CMushroom* mushroom = dynamic_cast<CMushroom*>(e->obj);
+    if (mushroom->GetType() == MUSHROOM_TYPE_GREEN) {
+        CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+        scene->GetHUD()->AddLives();
+        CEffect* effect = new CEffect(x, y, 2001);
+        scene->AddObject(effect);
+    }
     mushroom->Delete();
 }
 

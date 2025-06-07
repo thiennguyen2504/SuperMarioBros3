@@ -35,4 +35,5 @@ public:
     int IsBlocking() { return 0; }
     void OnNoCollision(DWORD dt) override;
     void OnCollisionWith(LPCOLLISIONEVENT e) override;
+	int GetType() { return type; }
 };

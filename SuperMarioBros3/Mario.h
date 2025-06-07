@@ -19,6 +19,9 @@
 #define MARIO_FLY_FLAP_FORCE	0.03f 
 #define MARIO_FLY_DROP_FLAP_FORCE 0.5f 
 #define MARIO_FLAP_COOLDOWN     50
+#define MARIO_PIPE_SPEED        0.05f
+#define MARIO_PIPE_DURATION     1500
+#define MARIO_PIPE_ANIMATION_DURATION 500
 
 #define MARIO_GRAVITY			0.0009f
 
@@ -41,6 +44,8 @@
 #define MARIO_STATE_TAIL_ATTACK		700 
 #define MARIO_STATE_FLY				800 
 #define MARIO_STATE_FLY_DROP		801 
+#define MARIO_STATE_ENTER_PIPE_DOWN 900
+#define MARIO_STATE_ENTER_PIPE_UP   901
 
 #pragma region ANIMATION_ID
 #define ID_ANI_MARIO_IDLE_RIGHT 400
@@ -134,6 +139,8 @@ protected:
     float originalY;
     float originalX;
     float runProgress;
+    BOOLEAN isUsingPipe;
+    ULONGLONG pipeStart;
 
     virtual void OnCollisionWithGoomba(LPCOLLISIONEVENT e);
     virtual void OnCollisionWithCoin(LPCOLLISIONEVENT e);
@@ -173,6 +180,8 @@ public:
         originalY = y;
         originalX = x;
         runProgress = 0.0f;
+        isUsingPipe = false;
+        pipeStart = 0;
     }
     virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
     virtual void Render();
@@ -201,4 +210,5 @@ public:
     float GetVx() { return vx; }
     float GetRunProgress() { return runProgress; }
     bool GetIsOnPlatform() { return isOnPlatform; }
+    BOOLEAN IsUsingPipe() const { return isUsingPipe; }
 };

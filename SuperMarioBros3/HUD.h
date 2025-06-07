@@ -31,6 +31,7 @@ public:
     void AddScore(int points) { score += points; }
     void AddCoin() { coins++; }
     void UpdateCard(int spriteId);
+    void AddLives() { lives++; }
 };
 
 typedef CHUD* LPHUD;

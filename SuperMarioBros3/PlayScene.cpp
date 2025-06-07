@@ -120,7 +120,11 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
         DebugOut(L"[INFO] Player object has been created!\n");
         break;
     case OBJECT_TYPE_GOOMBA: obj = new CGoomba(x, y); break;
-    case OBJECT_TYPE_BRICK: obj = new CBrick(x, y); break;
+    case OBJECT_TYPE_BRICK: 
+
+        obj = new CBrick(x, y, BRICK_TYPE_NORMAL);
+        break;
+    
     case OBJECT_TYPE_COIN: obj = new CCoin(x, y, false); break;
     case OBJECT_TYPE_GRASS:
     {
@@ -239,10 +243,20 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
     }
     case OBJECT_TYPE_PIPE:
     {
-        int height = atoi(tokens[3].c_str());
-        int sprite_id_head = atoi(tokens[4].c_str());
-        int sprite_id_body = atoi(tokens[5].c_str());
-        obj = new CPipe(x, y, height, sprite_id_head, sprite_id_body);
+        if (tokens.size() >= 6) // Constructor dùng sprite
+        {
+            int height = atoi(tokens[3].c_str());
+            int sprite_id_head = atoi(tokens[4].c_str());
+            int sprite_id_body = atoi(tokens[5].c_str());
+            BOOLEAN can_go = tokens.size() > 6 ? atoi(tokens[6].c_str()) : false;
+            obj = new CPipe(x, y, height, sprite_id_head, sprite_id_body, can_go);
+        }
+        else // Constructor dùng animation
+        {
+            int animation_id = atoi(tokens[3].c_str());
+            BOOLEAN can_go = tokens.size() >= 4 ? atoi(tokens[4].c_str()) : false;
+            obj = new CPipe(x, y, animation_id, can_go);
+        }
         break;
     }
     case OBJECT_TYPE_QUESTION_BLOCK_COIN:
@@ -274,6 +288,12 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
         blackBackground = obj;
         break;
     }
+	case OBJECT_TYPE_HIDDEN_BRICK:
+	{   
+        int length = atoi(tokens[3].c_str());
+		obj = new CHiddenBrick(x, y, length);
+		break;
+	}
     case OBJECT_TYPE_CARD:
     {
         obj = new Card(x, y);
@@ -371,8 +391,9 @@ void CPlayScene::Update(DWORD dt)
         cx = playerX - backBufferWidth / 2;
         cy = playerY - backBufferHeight / 2;
         if (cx < 0) cx = 0; 
-        if (cx > CAMERA_RIGHT_LIMIT - backBufferWidth) cx = CAMERA_RIGHT_LIMIT - backBufferWidth; 
-        if (cy > CAMERA_BOTTOM_EDGE) cy = CAMERA_BOTTOM_EDGE;
+        //if (cx > CAMERA_RIGHT_LIMIT - backBufferWidth) cx = CAMERA_RIGHT_LIMIT - backBufferWidth; 
+        //
+        // if (cy > CAMERA_BOTTOM_EDGE) cy = CAMERA_BOTTOM_EDGE;
         game->SetCamPos(cx, cy);
     }
     const float ENEMY_UPDATE_MARGIN = 20.0f;
@@ -447,7 +468,6 @@ void CPlayScene::Update(DWORD dt)
                 {
                     obj->SetPosition(it->startX, it->startY);
                     AddObject(obj);
-                    DebugOut(L"[INFO] Respawned KoopaTroopa type=%d at (%f, %f)\n", it->type, it->startX, it->startY);
                     it = deletedKoopaSpawns.erase(it);
                     continue;
                 }

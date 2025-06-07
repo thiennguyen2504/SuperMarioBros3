@@ -19,6 +19,8 @@
 #include "PlayScene.h"
 #include "GreenKoopaTroopa.h"
 #include "HUD.h"
+#include "Pipe.h"
+
 
 void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
@@ -28,12 +30,34 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
         untouchable = 0;
     }
 
-    // Luôn cập nhật vận tốc khi isHolding, bỏ qua isBlinking/isAppearing
-    if (!isLocked) // Chỉ khóa khi thực sự cần (ví dụ: chuyển cảnh)
+    if (isUsingPipe)
+    {
+        if (state == MARIO_STATE_ENTER_PIPE_DOWN && GetTickCount64() - pipeStart > MARIO_PIPE_ANIMATION_DURATION)
+        {
+            DebugOut(L"[DEBUG] Pipe down complete: Moving to (2649, 530)\n");
+            isUsingPipe = false;
+            SetState(MARIO_STATE_IDLE);
+            SetPosition(2649, 530);
+        }
+        else if (state == MARIO_STATE_ENTER_PIPE_UP && GetTickCount64() - pipeStart > MARIO_PIPE_DURATION)
+        {
+            DebugOut(L"[DEBUG] Pipe up complete: Moving to (2360, 130)\n");
+            isUsingPipe = false;
+            SetState(MARIO_STATE_IDLE);
+            SetPosition(2360, 130);
+        }
+        else
+        {
+            // Cập nhật vị trí khi đang trong ống
+            x += vx * dt;
+            y += vy * dt;
+            DebugOut(L"[DEBUG] Pipe state: x=%f, y=%f, vx=%f, vy=%f, time=%llu\n", x, y, vx, vy, GetTickCount64() - pipeStart);
+        }
+    }
+    else if (!isLocked)
     {
         vy += ay * dt;
 
-        // Update runProgress
         if (isRunning && (state == MARIO_STATE_RUNNING_RIGHT || state == MARIO_STATE_RUNNING_LEFT))
         {
             runProgress += MARIO_RUN_PROGRESS_ACCEL * dt;
@@ -45,13 +69,11 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
             if (runProgress < 0.0f) runProgress = 0.0f;
         }
 
-        // Update maxVx based on runProgress
         float speedRange = MARIO_RUNNING_SPEED - MARIO_WALKING_SPEED;
         maxVx = (nx > 0) ?
             MARIO_WALKING_SPEED + speedRange * runProgress :
             -(MARIO_WALKING_SPEED + speedRange * runProgress);
 
-        // Apply acceleration or friction
         LPGAME game = CGame::GetInstance();
         if (game->IsKeyDown(DIK_L) || game->IsKeyDown(DIK_J))
         {
@@ -98,6 +120,7 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
     CCollision::GetInstance()->Process(this, dt, coObjects);
 }
+
 
 void CMario::OnNoCollision(DWORD dt)
 {
@@ -147,7 +170,23 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
         OnCollisionWithMushroom(e);
     else if (dynamic_cast<CLeaf*>(e->obj))
         OnCollisionWithLeaf(e);
+    else if (dynamic_cast<CPipe*>(e->obj))
+    {
+        CPipe* pipe = dynamic_cast<CPipe*>(e->obj);
+        if (e->ny < 0 && pipe->CanGo() && IsKeyDown(DIK_K))
+        {
+            DebugOut(L"[DEBUG] Collision with pipe (down): canGo=%d, keyK=%d\n", pipe->CanGo(), IsKeyDown(DIK_K));
+            SetState(MARIO_STATE_ENTER_PIPE_DOWN);
+        }
+        else if (e->ny > 0 && pipe->CanGo() && IsKeyDown(DIK_I))
+        {
+            DebugOut(L"[DEBUG] Collision with pipe (up): canGo=%d, keyI=%d\n", pipe->CanGo(), IsKeyDown(DIK_I));
+            SetState(MARIO_STATE_ENTER_PIPE_UP);
+        }
+    }
 }
+
+
 
 void CMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
 {
@@ -159,6 +198,10 @@ void CMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
         {
             goomba->SetState(ENEMY_STATE_DIE);
             vy = -MARIO_JUMP_DEFLECT_SPEED;
+            CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+            scene->GetHUD()->AddScore(GOOMBA_SCORE);
+            CEffect* effect = new CEffect(x, y, GOOMBA_SCORE);
+            scene->AddObject(effect);
         }
     }
     else
@@ -242,11 +285,19 @@ void CMario::OnCollisionWithKoopaTroopa(LPCOLLISIONEVENT e)
         {
             koopa->SetState(KOOPA_STATE_SHELL_IDLE);
             vy = -MARIO_JUMP_DEFLECT_SPEED;
+            CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+            scene->GetHUD()->AddScore(GOOMBA_SCORE);
+            CEffect* effect = new CEffect(x, y, GOOMBA_SCORE);
+            scene->AddObject(effect);
         }
         else if (koopa->GetState() == KOOPA_STATE_SHELL_RUNNING)
         {
             koopa->SetState(KOOPA_STATE_SHELL_IDLE);
             vy = -MARIO_JUMP_DEFLECT_SPEED;
+            CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+            scene->GetHUD()->AddScore(GOOMBA_SCORE);
+            CEffect* effect = new CEffect(x, y, GOOMBA_SCORE);
+            scene->AddObject(effect);
         }
         else if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE && !koopa->IsIdleCooldownActive())
         {
@@ -318,6 +369,9 @@ void CMario::OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e)
         paraGoomba->GetPosition(gx, gy);
         CGoomba* goomba = new CGoomba(gx, gy - RED_PARAGOOMBA_BBOX_HEIGHT / 2, GOOMBA_TYPE_RED);
         goomba->SetState(ENEMY_STATE_WALKING);
+        scene->GetHUD()->AddScore(GOOMBA_SCORE);
+        CEffect* effect = new CEffect(x, y, GOOMBA_SCORE);
+        scene->AddObject(effect);
         scene->AddObject(goomba);
         paraGoomba->Delete();
         vy = -MARIO_JUMP_DEFLECT_SPEED;
@@ -352,6 +406,9 @@ void CMario::OnCollisionWithGreenParaKoopa(LPCOLLISIONEVENT e)
             paraKoopa->GetPosition(kx, ky);
             GreenKoopaTroopa* koopa = new GreenKoopaTroopa(kx, ky - GREEN_PARAKOOPA_BBOX_HEIGHT / 2);
             koopa->SetState(KOOPA_STATE_WALKING);
+            scene->GetHUD()->AddScore(GOOMBA_SCORE);
+            CEffect* effect = new CEffect(x, y, GOOMBA_SCORE);
+            scene->AddObject(effect);
             scene->AddObject(koopa);
             paraKoopa->Delete();
             vy = -MARIO_JUMP_DEFLECT_SPEED;
@@ -409,9 +466,15 @@ void CMario::OnCollisionWithStaticCoin(LPCOLLISIONEVENT e)
 void CMario::OnCollisionWithMushroom(LPCOLLISIONEVENT e)
 {
     CMushroom* mushroom = dynamic_cast<CMushroom*>(e->obj);
-    if (level == MARIO_LEVEL_SMALL)
+    if (level == MARIO_LEVEL_SMALL && mushroom->GetType() == MUSHROOM_TYPE_RED)
     {
         SetLevel(MARIO_LEVEL_BIG);
+    }
+    else {
+        CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+        scene->GetHUD()->AddLives();
+        CEffect* effect = new CEffect(x, y, 2001);
+        scene->AddObject(effect);
     }
     mushroom->Delete();
 }
@@ -677,7 +740,8 @@ void CMario::Render()
 
 void CMario::SetState(int state)
 {
-    if (this->state == MARIO_STATE_DIE || isLocked) return;
+    // Bỏ qua kiểm tra isLocked cho trạng thái đi ống
+    if (this->state == MARIO_STATE_DIE) return;
 
     int prevNx = nx;
     LPGAME game = CGame::GetInstance();
@@ -795,6 +859,24 @@ void CMario::SetState(int state)
             SetHeldKoopa(nullptr);
         }
         break;
+    case MARIO_STATE_ENTER_PIPE_DOWN:
+        DebugOut(L"[DEBUG] Entering pipe down: pipeStart=%llu\n", GetTickCount64());
+        isUsingPipe = true;
+        pipeStart = GetTickCount64();
+        vy = MARIO_PIPE_SPEED;
+        vx = 0;
+        ax = 0;
+        ay = 0;
+        break;
+    case MARIO_STATE_ENTER_PIPE_UP:
+        DebugOut(L"[DEBUG] Entering pipe up: pipeStart=%llu\n", GetTickCount64());
+        isUsingPipe = true;
+        pipeStart = GetTickCount64();
+        vy = -MARIO_PIPE_SPEED;
+        vx = 0;
+        ax = 0;
+        ay = 0;
+        break;
     }
 
     CGameObject::SetState(state);
@@ -866,3 +948,6 @@ void CMario::SetLevel(int l)
     }
     level = l;
 }
+
+
+

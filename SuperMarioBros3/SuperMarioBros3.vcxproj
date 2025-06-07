@@ -150,6 +150,7 @@
     <ClCompile Include="Grass.cpp" />
     <ClCompile Include="GreenKoopaTroopa.cpp" />
     <ClCompile Include="GreenParaKoopa.cpp" />
+    <ClCompile Include="HiddenBrick.cpp" />
     <ClCompile Include="HUD.cpp" />
     <ClCompile Include="KoopaTroopa.cpp" />
     <ClCompile Include="Leaf.cpp" />
@@ -198,6 +199,7 @@
     <ClInclude Include="Grass.h" />
     <ClInclude Include="GreenKoopaTroopa.h" />
     <ClInclude Include="GreenParaKoopa.h" />
+    <ClInclude Include="HiddenBrick.h" />
     <ClInclude Include="HUD.h" />
     <ClInclude Include="KeyEventHandler.h" />
     <ClInclude Include="KoopaTroopa.h" />

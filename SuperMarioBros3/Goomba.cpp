@@ -1,5 +1,8 @@
 #include "Goomba.h"
 #include "Game.h"
+#include "HUD.h"
+#include "PlayScene.h"
+#include "Effect.h"
 
 CGoomba::CGoomba(float x, float y, int type) : Enemy(x, y)
 {

@@ -24,3 +24,4 @@ height	240
 70	textures\mario(1).png
 80	textures\HUD.png
 90	textures\black.png
+100	textures\pipe.png

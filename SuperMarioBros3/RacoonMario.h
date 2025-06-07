@@ -23,6 +23,7 @@
 #define ID_ANI_RACCOON_MARIO_FLY_DROP_LEFT 1929
 #define ID_ANI_RACCOON_MARIO_TAIL_ATTACK_RIGHT 1922
 #define ID_ANI_RACCOON_MARIO_TAIL_ATTACK_LEFT 1921 
+#define ID_ANI_RACCOON_MARIO_ENTER_PIPE_DOWN 1923
 #pragma endregion
 
 class StaticCoin;
@@ -41,9 +42,7 @@ protected:
     ULONGLONG flapCooldown;
     ULONGLONG jumpStartTime;
     BOOLEAN isFlapping;
-    ULONGLONG lastFlapTime; 
-
-
+    ULONGLONG lastFlapTime;
 
 public:
     CRaccoonMario(float x, float y) : CMario(x, y)
