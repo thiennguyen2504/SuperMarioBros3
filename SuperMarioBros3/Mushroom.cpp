@@ -2,8 +2,9 @@
 #include "Collision.h"
 #include "PlayScene.h"
 
-CMushroom::CMushroom(float x, float y) : CGameObject(x, y)
+CMushroom::CMushroom(float x, float y, int type) : CGameObject(x, y)
 {
+	this->type = type;
     isMovingUp = true;
     startY = y;
     ax = 0;
@@ -38,8 +39,10 @@ void CMushroom::Render()
 {
     if (IsDeleted())
         return;
-
-    CAnimations::GetInstance()->Get(ID_ANI_MUSHROOM)->Render(x, y);
+	if (type == MUSHROOM_TYPE_RED)
+		CAnimations::GetInstance()->Get(ID_ANI_MUSHROOM)->Render(x, y);
+	else if (type == MUSHROOM_TYPE_GREEN)
+        CAnimations::GetInstance()->Get(ID_ANI_GREEN_MUSHROOM)->Render(x, y);
     // RenderBoundingBox();
 }
 

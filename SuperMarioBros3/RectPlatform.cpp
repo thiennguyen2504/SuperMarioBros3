@@ -1,4 +1,4 @@
-﻿ #include "RectPlatform.h"
+﻿#include "RectPlatform.h"
 
 #include "Sprite.h"
 #include "Sprites.h"
@@ -27,7 +27,7 @@ void CRectPlatform::Render()
     float platform_height = this->height * this->cellHeight * this->scale;
     float shadow_height = (this->height * this->cellHeight - SHADOW_HEIGHT_REDUCTION) * this->scale;
     float shadow_scale_y = shadow_height / SHADOW_SPRITE_HEIGHT;
-    float shadow_scale_x = this->scale; 
+    float shadow_scale_x = this->scale;
     float shadow_width = SHADOW_SPRITE_WIDTH * shadow_scale_x;
     float shadow_x = r + (shadow_width / 2.0f) + SHADOW_OFFSET_X;
     float shadow_y = b - shadow_height / 2;
@@ -104,6 +104,6 @@ void CRectPlatform::GetBoundingBox(float& l, float& t, float& r, float& b)
 
 int CRectPlatform::IsDirectionColliable(float nx, float ny)
 {
-    if (nx == 0 && ny == -1) return 1;
+    if (nx == 0 && (ny == -1 || ny < 0)) return 1;
     else return 0;
 }

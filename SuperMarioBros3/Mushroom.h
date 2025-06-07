@@ -11,17 +11,22 @@
 #define MUSHROOM_STATE_EMERGING 50
 #define MUSHROOM_STATE_WALKING 100
 
+#define MUSHROOM_TYPE_RED 1
+#define MUSHROOM_TYPE_GREEN 2
+
 #define ID_ANI_MUSHROOM 120002
+#define ID_ANI_GREEN_MUSHROOM 120004
 
 class CMushroom : public CGameObject {
 private:
+	int type; // 1: Red Mushroom, 2: Green Mushroom
     bool isMovingUp;
     float startY;
     float ax;
     float ay;
 
 public:
-    CMushroom(float x, float y);
+    CMushroom(float x, float y, int type);
     void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects) override;
     void Render() override;
     void GetBoundingBox(float& left, float& top, float& right, float& bottom) override;

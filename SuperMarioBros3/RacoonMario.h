@@ -39,7 +39,10 @@ protected:
     ULONGLONG flyStart;
     BOOLEAN canFlap;
     ULONGLONG flapCooldown;
-    ULONGLONG jumpStartTime; 
+    ULONGLONG jumpStartTime;
+    BOOLEAN isFlapping;
+    ULONGLONG lastFlapTime; 
+
 
 
 public:
@@ -54,6 +57,8 @@ public:
         canFlap = false;
         flapCooldown = 0;
         jumpStartTime = 0;
+        isFlapping = false;
+        lastFlapTime = 0;
     }
 
     virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects) override;
@@ -92,5 +97,4 @@ public:
     void StopFlying();
     void UpdateFlying(DWORD dt);
     void Flap();
-
 };

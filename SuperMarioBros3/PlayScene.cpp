@@ -46,7 +46,6 @@ CPlayScene::CPlayScene(int id, LPCWSTR filePath) : CScene(id, filePath)
 #define ASSETS_SECTION_UNKNOWN -1
 #define ASSETS_SECTION_SPRITES 1
 #define ASSETS_SECTION_ANIMATIONS 2
-
 #define MAX_SCENE_LINE 1024
 
 void CPlayScene::_ParseSection_SPRITES(string line)
@@ -256,6 +255,11 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
         obj = new CQuestionBlock(x, y, QUESTION_BLOCK_TYPE_ITEM);
         break;
     }
+    case OBJECT_TYPE_QUESTION_BLOCK_GREEN:
+    {
+        obj = new CQuestionBlock(x, y, QUESTION_BLOCK_TYPE_GREEN_MUSHROOM);
+        break;
+    }
     case OBJECT_TYPE_MAPOBJECTS:
     {
         int sprite_id = atoi(tokens[3].c_str());
@@ -268,6 +272,11 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
         float mapHeight = (float)atof(tokens[4].c_str());
         obj = new BlackBackground(x, y, mapWidth, mapHeight);
         blackBackground = obj;
+        break;
+    }
+    case OBJECT_TYPE_CARD:
+    {
+        obj = new Card(x, y);
         break;
     }
     default:
@@ -343,26 +352,33 @@ void CPlayScene::Update(DWORD dt)
     PurgeDeletedObjects();
 
     // Tính phạm vi kích hoạt dựa trên camera
-    float cx, playerX, playerY;
+    float cx, cy, playerX, playerY;
     CGame* game = CGame::GetInstance();
     float backBufferWidth = game->GetBackBufferWidth();
+    float backBufferHeight = game->GetBackBufferHeight();
+    const float CAMERA_RIGHT_LIMIT = 2800.0f;
+    const float CAMERA_BOTTOM_EDGE = 0.0f; 
+
     if (!player)
     {
         cx = 0;
+        cy = 0;
     }
     else
     {
         player->GetPosition(playerX, playerY);
         DebugOut(L"[DEBUG] Player position: (%f, %f)\n", playerX, playerY);
         cx = playerX - backBufferWidth / 2;
-        if (cx < 0) cx = 0;
-        game->SetCamPos(cx, 0);
+        cy = playerY - backBufferHeight / 2;
+        if (cx < 0) cx = 0; 
+        if (cx > CAMERA_RIGHT_LIMIT - backBufferWidth) cx = CAMERA_RIGHT_LIMIT - backBufferWidth; 
+        if (cy > CAMERA_BOTTOM_EDGE) cy = CAMERA_BOTTOM_EDGE;
+        game->SetCamPos(cx, cy);
     }
     const float ENEMY_UPDATE_MARGIN = 20.0f;
     float activeLeft = cx - ENEMY_UPDATE_MARGIN;
     float activeRight = cx + backBufferWidth + ENEMY_UPDATE_MARGIN;
 
-    // Kiểm tra và xóa KoopaTroopa ngoài camera
     for (size_t i = 0; i < objects.size(); i++)
     {
         if (objects[i] && !objects[i]->IsDeleted())
@@ -519,19 +535,21 @@ void CPlayScene::Render()
             !dynamic_cast<CBrick*>(objects[i]) &&
             !dynamic_cast<CEffect*>(objects[i]) &&
             !dynamic_cast<BlackBackground*>(objects[i]) &&
+            !dynamic_cast<Card*>(objects[i]) &&
             !objects[i]->IsDeleted())
         {
             objects[i]->Render();
         }
     }
 
-    // Render midground objects (Mushroom, Leaf, Pipe)
+    // Render midground objects (Mushroom, Leaf, Pipe, Card)
     for (size_t i = 0; i < objects.size(); i++)
     {
         if (objects[i] &&
             (dynamic_cast<CMushroom*>(objects[i]) ||
                 dynamic_cast<CLeaf*>(objects[i]) ||
-                dynamic_cast<CPipe*>(objects[i])) &&
+                dynamic_cast<CPipe*>(objects[i]) ||
+                dynamic_cast<Card*>(objects[i])) &&
             !objects[i]->IsDeleted())
         {
             objects[i]->Render();

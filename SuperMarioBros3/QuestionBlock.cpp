@@ -99,7 +99,7 @@ void CQuestionBlock::OnCollisionWith(LPCOLLISIONEVENT e)
             {
                 if (raccoonMario->GetLevel() == MARIO_LEVEL_SMALL)
                 {
-                    CMushroom* mushroom = new CMushroom(x, y);
+                    CMushroom* mushroom = new CMushroom(x, y, MUSHROOM_TYPE_RED);
                     scene->AddObject(mushroom);
                 }
                 else
@@ -107,6 +107,12 @@ void CQuestionBlock::OnCollisionWith(LPCOLLISIONEVENT e)
                     CLeaf* leaf = new CLeaf(x, y - QUESTION_BLOCK_BBOX_HEIGHT);
                     scene->AddObject(leaf);
                 }
+                SetState(QUESTION_BLOCK_STATE_INACTIVE);
+            }
+            else if (type == QUESTION_BLOCK_TYPE_GREEN_MUSHROOM)
+            {
+				CMushroom* greenMushroom = new CMushroom(x, y, MUSHROOM_TYPE_GREEN);
+				scene->AddObject(greenMushroom);
                 SetState(QUESTION_BLOCK_STATE_INACTIVE);
             }
 
@@ -130,7 +136,7 @@ void CQuestionBlock::OnCollisionWith(LPCOLLISIONEVENT e)
             {
                 if (mario->GetLevel() == MARIO_LEVEL_SMALL)
                 {
-                    CMushroom* mushroom = new CMushroom(x, y);
+                    CMushroom* mushroom = new CMushroom(x, y, MUSHROOM_TYPE_RED);
                     scene->AddObject(mushroom);
                 }
                 else
@@ -138,6 +144,12 @@ void CQuestionBlock::OnCollisionWith(LPCOLLISIONEVENT e)
                     CLeaf* leaf = new CLeaf(x, y - QUESTION_BLOCK_BBOX_HEIGHT);
                     scene->AddObject(leaf);
                 }
+                SetState(QUESTION_BLOCK_STATE_INACTIVE);
+            }
+            else if (type == QUESTION_BLOCK_TYPE_GREEN_MUSHROOM)
+            {
+                CMushroom* greenMushroom = new CMushroom(x, y, MUSHROOM_TYPE_GREEN);
+                scene->AddObject(greenMushroom);
                 SetState(QUESTION_BLOCK_STATE_INACTIVE);
             }
 

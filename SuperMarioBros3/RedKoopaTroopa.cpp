@@ -141,7 +141,7 @@ void RedKoopaTroopa::OnCollisionWithQuestionBlock(LPCOLLISIONEVENT e)
             {
                 if (mario->GetLevel() == MARIO_LEVEL_SMALL)
                 {
-                    CMushroom* mushroom = new CMushroom(bx, by);
+                    CMushroom* mushroom = new CMushroom(bx, by, MUSHROOM_TYPE_RED);
                     scene->AddObject(mushroom);
                 }
                 else

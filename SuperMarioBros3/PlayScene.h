@@ -26,6 +26,7 @@
 #include "HUD.h"
 #include "Effect.h"
 #include "BlackBackground.h"
+#include "Card.h"
 
 #define GAME_MARGIN 0.1f
 #define HUD_HEIGHT 26.0f

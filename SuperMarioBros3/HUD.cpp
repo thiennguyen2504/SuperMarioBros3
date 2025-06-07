@@ -13,19 +13,29 @@ CHUD::CHUD()
     float backHeight = CGame::GetInstance()->GetBackBufferHeight();
 
     x = 100.0f;
-    y = backHeight - HUD_HEIGHT / 2.0f; 
+    y = backHeight - HUD_HEIGHT / 2.0f;
 
-    score = 100;
+    score = 0;
     coins = 0;
     time = 0;
     lives = 0;
 
     hudSprite = CSprites::GetInstance()->Get(ID_SPRITE_HUD);
-    cardSprite = CSprites::GetInstance()->Get(ID_SPRITE_CARD);
+    cardSpriteIds = { HUD_CARD_EMPTY, HUD_CARD_EMPTY, HUD_CARD_EMPTY };
     arrowBlackSprite = CSprites::GetInstance()->Get(ID_SPRITE_ARROW_BLACK);
     arrowWhiteSprite = CSprites::GetInstance()->Get(ID_SPRITE_ARROW_WHITE);
     pMeterBlackSprite = CSprites::GetInstance()->Get(ID_SPRITE_P_METER_BLACK);
     pMeterWhiteSprite = CSprites::GetInstance()->Get(ID_SPRITE_P_METER_WHITE);
+}
+
+void CHUD::UpdateCard(int spriteId)
+{
+    if (cardSpriteIds.size() >= 3)
+    {
+        cardSpriteIds[0] = cardSpriteIds[1];
+        cardSpriteIds[1] = cardSpriteIds[2];
+        cardSpriteIds[2] = spriteId;
+    }
 }
 
 void CHUD::Render()
@@ -35,21 +45,22 @@ void CHUD::Render()
         hudSprite->DrawStatic(floor(x), floor(y));
     }
 
-    if (cardSprite != nullptr)
-    {
-        float backWidth = CGame::GetInstance()->GetBackBufferWidth();
-        const float CARD_WIDTH = 24.0f; 
-        const float CARD_SPACING = 0.0f;
-        const float RIGHT_MARGIN = 10.0f;
+    float backWidth = CGame::GetInstance()->GetBackBufferWidth();
+    const float CARD_WIDTH = 24.0f;
+    const float CARD_SPACING = 0.0f;
+    const float RIGHT_MARGIN = 10.0f;
 
-        for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 3; i++)
+    {
+        float cardX = backWidth - RIGHT_MARGIN - (i + 1) * CARD_WIDTH - i * CARD_SPACING;
+        LPSPRITE cardSprite = CSprites::GetInstance()->Get(cardSpriteIds[i]);
+        if (cardSprite != nullptr)
         {
-            float cardX = backWidth - RIGHT_MARGIN - (i + 1) * CARD_WIDTH - i * CARD_SPACING;
             cardSprite->DrawStatic(floor(cardX), floor(y));
         }
     }
 
-    const float DIGIT_WIDTH = 8.0f; 
+    const float DIGIT_WIDTH = 8.0f;
     const float DIGIT_Y1 = floor(y - 4.0f);
     const float DIGIT_Y2 = floor(y + 4.0f);
 
@@ -60,7 +71,7 @@ void CHUD::Render()
         scoreDigits[i] = scoreTemp % 10;
         scoreTemp /= 10;
     }
-    float scoreX = 80.0f; 
+    float scoreX = 80.0f;
     for (int i = 0; i < SCORE_DIGITS; i++)
     {
         LPSPRITE digitSprite = CSprites::GetInstance()->Get(scoreDigits[i]);
@@ -77,7 +88,7 @@ void CHUD::Render()
         coinDigits[i] = coinsTemp % 10;
         coinsTemp /= 10;
     }
-    float coinX = 160.0f; 
+    float coinX = 160.0f;
     for (int i = 0; i < COIN_DIGITS; i++)
     {
         LPSPRITE digitSprite = CSprites::GetInstance()->Get(coinDigits[i]);
@@ -107,7 +118,7 @@ void CHUD::Render()
 
     // Lives (1 digit)
     int livesDigit = lives % 10;
-    float livesX = 65.0f; 
+    float livesX = 65.0f;
     LPSPRITE digitSprite = CSprites::GetInstance()->Get(livesDigit);
     if (digitSprite != nullptr)
     {
@@ -118,10 +129,10 @@ void CHUD::Render()
     CMario* mario = (CMario*)scene->GetPlayer();
     float runProgress = mario ? mario->GetRunProgress() : 0.0f;
 
-    const float ARROW_WIDTH = 8.0f; 
-    const float ARROW_Y = floor(y - 4.0f); 
+    const float ARROW_WIDTH = 8.0f;
+    const float ARROW_Y = floor(y - 4.0f);
     const int NUM_ARROWS = 6;
-    float arrowX = 80.0f; 
+    float arrowX = 80.0f;
 
     for (int i = 0; i < NUM_ARROWS; i++)
     {
@@ -133,8 +144,8 @@ void CHUD::Render()
         }
     }
 
-    const float P_METER_WIDTH = 15.0f; 
-    float pMeterX = 133.0f; 
+    const float P_METER_WIDTH = 15.0f;
+    float pMeterX = 133.0f;
     LPSPRITE pMeterSprite = pMeterBlackSprite;
     if (runProgress >= 1.0f)
     {

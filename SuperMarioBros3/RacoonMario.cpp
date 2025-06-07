@@ -1,4 +1,4 @@
-#include "RacoonMario.h"
+﻿#include "RacoonMario.h"
 #include "Goomba.h"
 #include "Coin.h"
 #include "VenusFire.h"
@@ -42,13 +42,22 @@ void CRaccoonMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
             runProgress += MARIO_RUN_PROGRESS_ACCEL * dt;
             if (runProgress > 1.0f) runProgress = 1.0f;
         }
-        else if (isFlying && GetTickCount64() - flyStart <= 4000) 
+        else if (isFlying && GetTickCount64() - flyStart <= 4000)
         {
+            // Giữ runProgress không đổi
         }
-        else if (GetTickCount64() - jumpStartTime > 500) 
+        else if (GetTickCount64() - lastFlapTime <= 2000)
+        {
+            // Giữ runProgress không đổi
+        }
+        else if (GetTickCount64() - jumpStartTime > 500)
         {
             runProgress -= MARIO_RUN_PROGRESS_DECAY * dt;
             if (runProgress < 0.0f) runProgress = 0.0f;
+            if (isFlying && GetTickCount64() - lastFlapTime > 2000)
+            {
+                SetState(MARIO_STATE_FLY_DROP);
+            }
         }
 
         float speedRange = MARIO_RUNNING_SPEED - MARIO_WALKING_SPEED;
@@ -77,7 +86,29 @@ void CRaccoonMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
             ax = 0.0f;
         }
 
+        // Kiểm tra gần mặt đất để reset trạng thái
+        if (y >= GROUND_Y - MARIO_RACCOON_BBOX_HEIGHT / 2 && abs(vy) < 0.01f && !isOnPlatform)
+        {
+            vy = 0;
+            ay = MARIO_GRAVITY;
+            isFlying = false;
+            canFlap = false;
+            flyStart = 0;
+            flapCooldown = 0;
+            jumpStartTime = 0;
+            lastFlapTime = 0;
+            isFlapping = false;
+            isOnPlatform = true;
+            SetState(MARIO_STATE_IDLE);
+            DebugOut(L"[DEBUG] Reset state near ground: y=%f, vy=%f, isOnPlatform=%d\n", y, vy, isOnPlatform);
+        }
+
         UpdateFlying(dt);
+
+        if (isFlapping && GetTickCount64() - flapCooldown > 200)
+        {
+            isFlapping = false;
+        }
     }
 
     if (isTailAttacking && GetTickCount64() - tailAttackStart > MARIO_TAIL_ATTACK_DURATION)
@@ -152,6 +183,8 @@ void CRaccoonMario::Flap()
     if (GetTickCount64() - flapCooldown < MARIO_FLAP_COOLDOWN) return;
 
     flapCooldown = GetTickCount64();
+    lastFlapTime = GetTickCount64();
+    isFlapping = true;
 
     if (!isOnPlatform)
     {
@@ -184,7 +217,7 @@ int CRaccoonMario::GetAniIdRaccoon()
     {
         aniId = (nx > 0) ? ID_ANI_RACCOON_MARIO_FLY_RIGHT : ID_ANI_RACCOON_MARIO_FLY_LEFT;
     }
-    else if (state == MARIO_STATE_FLY_DROP)
+    else if (state == MARIO_STATE_FLY_DROP || (isFlapping && !isOnPlatform))
     {
         aniId = (nx > 0) ? ID_ANI_RACCOON_MARIO_FLY_DROP_RIGHT : ID_ANI_RACCOON_MARIO_FLY_DROP_LEFT;
     }
@@ -239,7 +272,7 @@ int CRaccoonMario::GetAniIdRaccoon()
         else
         {
             if (ax > 0)
-                aniId = ID_ANI_RACCOON_MARIO_BRACE_LEFT;
+                aniId = (nx > 0) ? ID_ANI_RACCOON_MARIO_BRACE_LEFT : ID_ANI_RACCOON_MARIO_BRACE_LEFT;
             else if (ax == -MARIO_ACCEL_RUN_X || runProgress >= 0.8f)
                 aniId = ID_ANI_RACCOON_MARIO_RUN_LEFT;
             else if (ax == -MARIO_ACCEL_WALK_X)
@@ -289,15 +322,19 @@ void CRaccoonMario::OnCollisionWith(LPCOLLISIONEVENT e)
         if (e->ny < 0)
         {
             isOnPlatform = true;
-            if (isFlying || state == MARIO_STATE_FLY_DROP)
+            ay = MARIO_GRAVITY;
+            // Reset trạng thái bay bất kể vy
+            if (isFlying || state == MARIO_STATE_FLY || state == MARIO_STATE_FLY_DROP)
             {
                 isFlying = false;
                 canFlap = false;
                 flyStart = 0;
                 flapCooldown = 0;
                 jumpStartTime = 0;
-                ay = MARIO_GRAVITY;
+                lastFlapTime = 0;
+                isFlapping = false;
                 SetState(MARIO_STATE_IDLE);
+                DebugOut(L"[DEBUG] Reset flying state on collision: vy=%f, ay=%f, isOnPlatform=%d, state=%d\n", vy, ay, isOnPlatform, state);
             }
         }
     }
@@ -371,7 +408,7 @@ void CRaccoonMario::OnCollisionWithVenusFire(LPCOLLISIONEVENT e)
 {
     VenusFire* venusFire = dynamic_cast<VenusFire*>(e->obj);
 
-    if (untouchable == 0)
+    if (untouchable == 0 && venusFire->GetState() != VENUS_FIRE_STATE_HIDDEN)
     {
         OnHit();
     }
@@ -586,7 +623,7 @@ void CRaccoonMario::OnCollisionWithPiranha(LPCOLLISIONEVENT e)
 {
     Piranha* piranha = dynamic_cast<Piranha*>(e->obj);
 
-    if (untouchable == 0)
+    if (untouchable == 0 && piranha->GetState() != PIRANHA_STATE_HIDDEN)
     {
         OnHit();
     }
