@@ -22,7 +22,7 @@ hud.txt
 # See OBJECT_TYPE constants in AssetIDs.h
 
 # MARIO
-0	10	10
+0	1400	10
 
 
 #BrickPlatform
@@ -176,6 +176,7 @@ hud.txt
 25	2106	164	0
 25	2106	148	0
 25	2122	164	0
+25	2123	148	0
 
 12	2106	10
 

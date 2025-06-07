@@ -26,6 +26,7 @@
 #include "Grass.h"
 #include "MapObjects.h"
 #include "RacoonMario.h"
+#include "GreenKoopaTroopa.h"
 #include "debug.h"
 
 using namespace std;
@@ -219,6 +220,13 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
     case OBJECT_TYPE_RED_KOOPA_TROOPA:
     {
         obj = new RedKoopaTroopa(x, y);
+        deletedKoopaSpawns.push_back({ x, y, OBJECT_TYPE_RED_KOOPA_TROOPA });
+        break;
+    }
+    case OBJECT_TYPE_GREEN_KOOPA_TROOPA:
+    {
+        obj = new GreenKoopaTroopa(x, y);
+        deletedKoopaSpawns.push_back({ x, y, OBJECT_TYPE_GREEN_KOOPA_TROOPA });
         break;
     }
     case OBJECT_TYPE_PORTAL:
@@ -331,7 +339,6 @@ void CPlayScene::Update(DWORD dt)
     float backBufferWidth = game->GetBackBufferWidth();
     if (!player)
     {
-        DebugOut(L"[ERROR] Player is null, setting cx=0\n");
         cx = 0;
     }
     else
@@ -339,16 +346,91 @@ void CPlayScene::Update(DWORD dt)
         player->GetPosition(playerX, playerY);
         DebugOut(L"[DEBUG] Player position: (%f, %f)\n", playerX, playerY);
         cx = playerX - backBufferWidth / 2;
-        if (cx < 0) cx = 0; // Ngăn camera vượt mép trái
-        game->SetCamPos(cx, 0); // Giữ cy=0 cố định
-        DebugOut(L"[DEBUG] Camera set to cx=%f, cy=0.000000\n", cx);
+        if (cx < 0) cx = 0; 
+        game->SetCamPos(cx, 0); 
     }
-    const float ENEMY_UPDATE_MARGIN = 20.0f; // 20px ngoài cạnh camera
+    const float ENEMY_UPDATE_MARGIN = 20.0f;
     float activeLeft = cx - ENEMY_UPDATE_MARGIN;
     float activeRight = cx + backBufferWidth + ENEMY_UPDATE_MARGIN;
-    DebugOut(L"[DEBUG] Camera cx=%f, backBufferWidth=%f, activeLeft=%f, activeRight=%f\n", cx, backBufferWidth, activeLeft, activeRight);
 
-    // Đặt isActive cho enemy
+    // Kiểm tra và xóa KoopaTroopa ngoài camera
+    for (size_t i = 0; i < objects.size(); i++)
+    {
+        if (objects[i] && !objects[i]->IsDeleted())
+        {
+            KoopaTroopa* koopa = dynamic_cast<KoopaTroopa*>(objects[i]);
+            if (koopa)
+            {
+                float ex, ey;
+                koopa->GetPosition(ex, ey);
+                if (ex < activeLeft || ex > activeRight)
+                {
+                    koopa->Delete();
+                }
+            }
+        }
+    }
+
+    for (size_t i = 0; i < objects.size(); i++)
+    {
+        if (objects[i] && objects[i]->IsDeleted())
+        {
+            KoopaTroopa* koopa = dynamic_cast<KoopaTroopa*>(objects[i]);
+            if (koopa)
+            {
+                bool alreadyTracked = false;
+                for (const auto& spawn : deletedKoopaSpawns)
+                {
+                    if (spawn.startX == koopa->GetStartX() && spawn.startY == koopa->GetStartY())
+                    {
+                        alreadyTracked = true;
+                        break;
+                    }
+                }
+                if (!alreadyTracked)
+                {
+                    int type = dynamic_cast<RedKoopaTroopa*>(koopa) ? OBJECT_TYPE_RED_KOOPA_TROOPA : OBJECT_TYPE_GREEN_KOOPA_TROOPA;
+                    deletedKoopaSpawns.push_back({ koopa->GetStartX(), koopa->GetStartY(), type });
+                }
+            }
+        }
+    }
+
+    for (auto it = deletedKoopaSpawns.begin(); it != deletedKoopaSpawns.end(); )
+    {
+        if (it->startX < activeLeft || it->startX > activeRight)
+        {
+            bool koopaExists = false;
+            for (const auto& obj : objects)
+            {
+                KoopaTroopa* koopa = dynamic_cast<KoopaTroopa*>(obj);
+                if (koopa && koopa->GetStartX() == it->startX && koopa->GetStartY() == it->startY)
+                {
+                    koopaExists = true;
+                    break;
+                }
+            }
+            if (!koopaExists)
+            {
+                CGameObject* obj = nullptr;
+                if (it->type == OBJECT_TYPE_RED_KOOPA_TROOPA)
+                    obj = new RedKoopaTroopa(it->startX, it->startY);
+                else if (it->type == OBJECT_TYPE_GREEN_KOOPA_TROOPA)
+                    obj = new GreenKoopaTroopa(it->startX, it->startY);
+
+                if (obj)
+                {
+                    obj->SetPosition(it->startX, it->startY);
+                    AddObject(obj);
+                    DebugOut(L"[INFO] Respawned KoopaTroopa type=%d at (%f, %f)\n", it->type, it->startX, it->startY);
+                    it = deletedKoopaSpawns.erase(it);
+                    continue;
+                }
+            }
+        }
+        ++it;
+    }
+
     for (size_t i = 0; i < objects.size(); i++)
     {
         if (objects[i] && !objects[i]->IsDeleted() && dynamic_cast<Enemy*>(objects[i]))
@@ -357,15 +439,6 @@ void CPlayScene::Update(DWORD dt)
             objects[i]->GetPosition(ex, ey);
             bool active = ex >= activeLeft && ex <= activeRight;
             objects[i]->SetActive(active);
-            string enemyType = "Unknown";
-            if (dynamic_cast<CGoomba*>(objects[i])) enemyType = "Goomba";
-            else if (dynamic_cast<RedKoopaTroopa*>(objects[i])) enemyType = "RedKoopaTroopa";
-            else if (dynamic_cast<RedParaGoomba*>(objects[i])) enemyType = "RedParaGoomba";
-            else if (dynamic_cast<VenusFire*>(objects[i])) enemyType = "VenusFire";
-            else if (dynamic_cast<Fireball*>(objects[i])) enemyType = "Fireball";
-            else if (dynamic_cast<GreenParaKoopa*>(objects[i])) enemyType = "GreenParaKoopa";
-            else if (dynamic_cast<Piranha*>(objects[i])) enemyType = "Piranha";
-            DebugOut(L"[DEBUG] %s at (%f, %f) isActive=%d\n", ToLPCWSTR(enemyType), ex, ey, active);
         }
     }
 
@@ -378,14 +451,13 @@ void CPlayScene::Update(DWORD dt)
         }
     }
 
-    // Cập nhật các đối tượng
+
     for (size_t i = 0; i < objects.size(); i++)
     {
         if (objects[i] && !objects[i]->IsDeleted() && objects[i]->GetState() != -1)
         {
             if (dynamic_cast<Enemy*>(objects[i]))
             {
-                // Chỉ gọi Update cho enemy trong phạm vi [cx - 20, cx + backBufferWidth + 20]
                 float ex, ey;
                 objects[i]->GetPosition(ex, ey);
                 if (ex >= activeLeft && ex <= activeRight)
@@ -395,7 +467,6 @@ void CPlayScene::Update(DWORD dt)
             }
             else
             {
-                // Các đối tượng không phải enemy vẫn cập nhật bình thường
                 objects[i]->Update(dt, &coObjects);
             }
         }
@@ -511,6 +582,7 @@ void CPlayScene::Clear()
     }
     objects.clear();
     goldBricks.clear();
+    deletedKoopaSpawns.clear();
 }
 
 void CPlayScene::Unload()
@@ -531,6 +603,7 @@ void CPlayScene::Unload()
 
     objects.clear();
     goldBricks.clear();
+    deletedKoopaSpawns.clear();
     player = nullptr;
     DebugOut(L"[INFO] Scene %d unloaded! \n", id);
 }

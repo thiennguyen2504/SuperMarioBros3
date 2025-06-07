@@ -29,10 +29,13 @@
 #define GAME_MARGIN 0.1f
 #define HUD_HEIGHT 26.0f
 #define BACKGROUND_COLOR D3DXCOLOR(156.0f/255, 252.0f/255, 240.0f/255, 100.0f)
-#define ENEMY_ACTIVE_THRESHOLD_X  20.0f
+#define ENEMY_ACTIVE_THRESHOLD_X 20.0f
 
-
-
+struct KoopaSpawnInfo
+{
+    float startX, startY;
+    int type;
+};
 
 class CPlayScene : public CScene
 {
@@ -40,7 +43,8 @@ protected:
     LPGAMEOBJECT player;
     vector<LPGAMEOBJECT> objects;
     vector<LPGAMEOBJECT> newObjects;
-    vector<LPGAMEOBJECT> goldBricks; 
+    vector<LPGAMEOBJECT> goldBricks;
+    vector<KoopaSpawnInfo> deletedKoopaSpawns;
     LPHUD hud;
 
     void _ParseSection_SPRITES(string line);

@@ -17,6 +17,10 @@
 #define ID_ANI_RACCOON_MARIO_HOLD_RIGHT 1906
 #define ID_ANI_RACCOON_MARIO_HOLD_LEFT 1913
 #define ID_ANI_RACCOON_MARIO_APPEAR 1914
+#define ID_ANI_RACCOON_MARIO_FLY_RIGHT 1917
+#define ID_ANI_RACCOON_MARIO_FLY_LEFT 1918
+#define ID_ANI_RACCOON_MARIO_FLY_DROP_RIGHT 1919
+#define ID_ANI_RACCOON_MARIO_FLY_DROP_LEFT 1929
 #define ID_ANI_RACCOON_MARIO_TAIL_ATTACK_RIGHT 1922
 #define ID_ANI_RACCOON_MARIO_TAIL_ATTACK_LEFT 1921 
 #pragma endregion
@@ -27,11 +31,18 @@ class PButton;
 class CRaccoonMario : public CMario
 {
 protected:
+    // Tail attack variables
     BOOLEAN isTailAttacking;
     ULONGLONG tailAttackStart;
     ULONGLONG tailAttackCooldown;
+
+    // Flying variables
+    BOOLEAN isFlying;
+    ULONGLONG flyStart;
+    BOOLEAN canFlap;
+
     virtual int GetAniIdRaccoon();
-    void OnHit();
+
 
 public:
     CRaccoonMario(float x, float y) : CMario(x, y)
@@ -40,6 +51,9 @@ public:
         isTailAttacking = false;
         tailAttackStart = 0;
         tailAttackCooldown = 0;
+        isFlying = false;
+        flyStart = 0;
+        canFlap = false;
     }
 
     virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects) override;
@@ -61,6 +75,8 @@ public:
     virtual void Render() override;
     virtual void SetState(int state) override;
     virtual void GetBoundingBox(float& left, float& top, float& right, float& bottom) override;
+
+    // Getters and setters
     float GetRunProgress() { return runProgress; }
     BOOLEAN IsTailAttacking() const { return isTailAttacking; }
     ULONGLONG GetTailAttackCooldown() const { return tailAttackCooldown; }
@@ -69,4 +85,12 @@ public:
     void SetTailAttackCooldown(ULONGLONG cooldown) { tailAttackCooldown = cooldown; }
     void StartTailAttack() { isTailAttacking = true; tailAttackStart = GetTickCount64(); }
     void StopTailAttack() { isTailAttacking = false; }
+    BOOLEAN IsFlying() const { return isFlying; }
+	BOOLEAN IsOnPlatform() const { return isOnPlatform; }
+    void OnHit();
+    BOOLEAN CanStartFlying();
+    void StartFlying();
+    void StopFlying();
+    void UpdateFlying(DWORD dt);
+    void Flap();
 };

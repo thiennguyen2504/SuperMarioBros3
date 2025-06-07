@@ -18,7 +18,7 @@
 
 RedKoopaTroopa::RedKoopaTroopa(float x, float y) : KoopaTroopa(x, y)
 {
-    SetShouldJumpOnHeadshot(true); 
+    SetShouldJumpOnHeadshot(true);
 }
 
 void RedKoopaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
@@ -30,6 +30,7 @@ void RedKoopaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
         bool edgeOnPlatform = false;
         float leftEdge, topEdge, rightEdge, bottomEdge;
         GetBoundingBox(leftEdge, topEdge, rightEdge, bottomEdge);
+
         for (size_t i = 0; i < coObjects->size(); i++)
         {
             LPGAMEOBJECT obj = coObjects->at(i);
@@ -40,12 +41,12 @@ void RedKoopaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
                 if (bottomEdge >= objTop - 8 && bottomEdge <= objTop + 8)
                 {
-                    if (direction == 1 && rightEdge >= objLeft && rightEdge <= objRight)
+                    if (direction == 1 && x >= objRight - 2 && x <= objRight + 2)
                     {
                         edgeOnPlatform = true;
                         break;
                     }
-                    else if (direction == -1 && leftEdge <= objRight && leftEdge >= objLeft)
+                    else if (direction == -1 && x >= objLeft - 2 && x <= objLeft + 2)
                     {
                         edgeOnPlatform = true;
                         break;
@@ -54,7 +55,7 @@ void RedKoopaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
             }
         }
 
-        if (!edgeOnPlatform)
+        if (edgeOnPlatform)
         {
             ReverseDirection();
         }
@@ -98,7 +99,7 @@ void RedKoopaTroopa::Render()
         LPANIMATION animation = animations->Get(aniId);
         if (animation != nullptr)
         {
-            if (IsFlipped()) 
+            if (IsFlipped())
             {
                 animation->RenderFlipped180(x, y);
             }
@@ -115,7 +116,7 @@ void RedKoopaTroopa::OnCollisionWithVenusFire(LPCOLLISIONEVENT e)
     VenusFire* venusFire = dynamic_cast<VenusFire*>(e->obj);
     if (state == KOOPA_STATE_SHELL_RUNNING && e->nx != 0)
     {
-		venusFire->SetState(VENUS_FIRE_STATE_DIE);
+        venusFire->SetState(VENUS_FIRE_STATE_DIE);
     }
 }
 

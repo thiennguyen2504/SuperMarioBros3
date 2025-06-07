@@ -9,6 +9,7 @@
 KoopaTroopa::KoopaTroopa(float x, float y) : Enemy(x, y)
 {
     this->startX = x;
+    this->startY = y;
     this->direction = -1;
     this->isOnPlatform = false;
     this->isPositionFixed = false;
@@ -22,6 +23,7 @@ KoopaTroopa::KoopaTroopa(float x, float y) : Enemy(x, y)
     this->ay = KOOPA_GRAVITY;
     this->isFlipped = false;
     this->shouldJumpOnHeadshot = true;
+
     SetState(KOOPA_STATE_WALKING);
 }
 
@@ -83,7 +85,8 @@ void KoopaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
             isDeleted = true;
         }
     }
-    if (state != KOOPA_STATE_HEADSHOT || idleCooldownStart == 0 || GetTickCount64() - idleCooldownStart > 100) 
+
+    if (state != KOOPA_STATE_HEADSHOT || idleCooldownStart == 0 || GetTickCount64() - idleCooldownStart > 100)
     {
         float leftEdge, topEdge, rightEdge, bottomEdge;
         GetBoundingBox(leftEdge, topEdge, rightEdge, bottomEdge);
@@ -97,7 +100,7 @@ void KoopaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
                 obj->GetBoundingBox(objLeft, objTop, objRight, objBottom);
 
                 if (bottomEdge >= objTop - 8 && bottomEdge <= objTop + 8 &&
-                    rightEdge > objLeft && leftEdge < objRight && vy >= 0) 
+                    rightEdge > objLeft && leftEdge < objRight && vy >= 0)
                 {
                     isOnPlatform = true;
                     vy = 0;
@@ -190,6 +193,11 @@ void KoopaTroopa::OnCollisionWith(LPCOLLISIONEVENT e)
                 fixedY = y;
                 isPositionFixed = true;
             }
+        }
+        else if (e->ny < 0 && state == KOOPA_STATE_HEADSHOT)
+        {
+            vy = -vy;
+            y += e->t * vy - 0.4f;
         }
         if (e->nx != 0 && (state == KOOPA_STATE_SHELL_RUNNING || state == KOOPA_STATE_HEADSHOT) && !hasBounced && CanBounce())
         {

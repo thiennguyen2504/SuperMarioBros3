@@ -25,7 +25,7 @@
 class KoopaTroopa : public Enemy
 {
 protected:
-    float startX;
+    float startX, startY; 
     int direction;
     ULONGLONG shellIdleStart;
     bool isOnPlatform;
@@ -35,8 +35,8 @@ protected:
     ULONGLONG bounceCooldownStart;
     ULONGLONG kickCooldownStart;
     ULONGLONG idleCooldownStart;
-    bool isFlipped; 
-    bool shouldJumpOnHeadshot; 
+    bool isFlipped;
+    bool shouldJumpOnHeadshot;
 
     virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects) override;
     virtual void Render() = 0;
@@ -61,7 +61,9 @@ public:
     bool CanBounce() { return bounceCooldownStart == 0 || (GetTickCount64() - bounceCooldownStart) > KOOPA_BOUNCE_COOLDOWN; }
     bool IsKickCooldownActive() { return kickCooldownStart > 0 && (GetTickCount64() - kickCooldownStart) <= KOOPA_KICK_COOLDOWN; }
     bool IsIdleCooldownActive() { return idleCooldownStart > 0 && (GetTickCount64() - idleCooldownStart) <= KOOPA_IDLE_COOLDOWN; }
-    void SetFlipped(bool flipped) { isFlipped = flipped; } 
-    bool IsFlipped() const { return isFlipped; } 
+    void SetFlipped(bool flipped) { isFlipped = flipped; }
+    bool IsFlipped() const { return isFlipped; }
     void SetShouldJumpOnHeadshot(bool jump) { shouldJumpOnHeadshot = jump; }
+    float GetStartX() const { return startX; }
+    float GetStartY() const { return startY; }
 };

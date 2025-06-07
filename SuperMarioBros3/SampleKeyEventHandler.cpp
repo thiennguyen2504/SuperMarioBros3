@@ -16,7 +16,19 @@ void CSampleKeyHandler::OnKeyDown(int KeyCode)
         mario->SetState(MARIO_STATE_SIT);
         break;
     case DIK_S:
-        mario->SetState(MARIO_STATE_JUMP);
+        if (dynamic_cast<CRaccoonMario*>(mario) && mario->GetLevel() == MARIO_LEVEL_RACCOON)
+        {
+            CRaccoonMario* raccoonMario = dynamic_cast<CRaccoonMario*>(mario);
+            if (!raccoonMario->IsOnPlatform() && raccoonMario->CanStartFlying() && !raccoonMario->IsFlying())
+            {
+                raccoonMario->SetState(MARIO_STATE_FLY);
+            }
+            raccoonMario->Flap();
+        }
+        else
+        {
+            mario->SetState(MARIO_STATE_JUMP);
+        }
         break;
     case DIK_1:
         mario->SetLevel(MARIO_LEVEL_SMALL);

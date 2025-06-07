@@ -12,6 +12,12 @@
 
 #define MARIO_JUMP_SPEED_Y		0.35f 
 #define MARIO_JUMP_RUN_SPEED_Y	0.41f
+#define MARIO_FLY_SPEED_Y		0.35f // Tốc độ bay lên ban đầu
+#define MARIO_FLY_DURATION		2000   // Thời gian bay tối đa (ms)
+#define MARIO_FLY_GRAVITY		0.0003f // Trọng lực khi bay
+#define MARIO_FLY_DROP_GRAVITY	0.0002f // Trọng lực khi rơi chậm
+#define MARIO_FLY_FLAP_FORCE	0.1f   // Lực đẩy lên mỗi lần nhấn S khi bay
+#define MARIO_FLY_DROP_FLAP_FORCE 0.05f // Lực giảm tốc độ rơi mỗi lần nhấn S khi rơi chậm
 
 #define MARIO_GRAVITY			0.0009f
 
@@ -32,6 +38,8 @@
 #define MARIO_STATE_SIT				600
 #define MARIO_STATE_SIT_RELEASE		601
 #define MARIO_STATE_TAIL_ATTACK		700 
+#define MARIO_STATE_FLY				800 // Trạng thái bay
+#define MARIO_STATE_FLY_DROP		801 // Trạng thái rơi chậm
 
 #pragma region ANIMATION_ID
 #define ID_ANI_MARIO_IDLE_RIGHT 400

@@ -73,6 +73,9 @@ void CRaccoonMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
             }
             ax = 0.0f;
         }
+
+        // Update flying logic
+        UpdateFlying(dt);
     }
 
     if (isTailAttacking && GetTickCount64() - tailAttackStart > MARIO_TAIL_ATTACK_DURATION)
@@ -113,6 +116,51 @@ void CRaccoonMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
     CCollision::GetInstance()->Process(this, dt, coObjects);
 }
 
+BOOLEAN CRaccoonMario::CanStartFlying()
+{
+    return runProgress >= 1.0f && !isTailAttacking && !isHolding;
+}
+
+void CRaccoonMario::StartFlying()
+{
+    isFlying = true;
+    canFlap = true;
+    flyStart = GetTickCount64();
+    ay = MARIO_FLY_GRAVITY;
+}
+
+void CRaccoonMario::StopFlying()
+{
+    isFlying = false;
+    canFlap = true;
+    flyStart = 0;
+    ay = MARIO_FLY_DROP_GRAVITY;
+}
+
+void CRaccoonMario::UpdateFlying(DWORD dt)
+{
+    if (isFlying && GetTickCount64() - flyStart > MARIO_FLY_DURATION)
+    {
+        SetState(MARIO_STATE_FLY_DROP);
+    }
+}
+
+void CRaccoonMario::Flap()
+{
+    if (!canFlap) return;
+
+    if (isFlying)
+    {
+        vy -= MARIO_FLY_FLAP_FORCE;
+        if (vy < -MARIO_FLY_SPEED_Y) vy = -MARIO_FLY_SPEED_Y; 
+    }
+    else if (state == MARIO_STATE_FLY_DROP)
+    {
+        vy -= MARIO_FLY_DROP_FLAP_FORCE;
+        if (vy < 0) vy = 0;
+    }
+}
+
 int CRaccoonMario::GetAniIdRaccoon()
 {
     int aniId = -1;
@@ -120,6 +168,14 @@ int CRaccoonMario::GetAniIdRaccoon()
     if (isTailAttacking)
     {
         aniId = (nx > 0) ? ID_ANI_RACCOON_MARIO_TAIL_ATTACK_RIGHT : ID_ANI_RACCOON_MARIO_TAIL_ATTACK_LEFT;
+    }
+    else if (isFlying)
+    {
+        aniId = (nx > 0) ? ID_ANI_RACCOON_MARIO_FLY_RIGHT : ID_ANI_RACCOON_MARIO_FLY_LEFT;
+    }
+    else if (state == MARIO_STATE_FLY_DROP)
+    {
+        aniId = (nx > 0) ? ID_ANI_RACCOON_MARIO_FLY_DROP_RIGHT : ID_ANI_RACCOON_MARIO_FLY_DROP_LEFT;
     }
     else if (isHolding)
     {
@@ -195,6 +251,14 @@ void CRaccoonMario::SetState(int state)
         ax = 0.0f;
         vx = 0.0f;
     }
+    else if (state == MARIO_STATE_FLY)
+    {
+        StartFlying();
+    }
+    else if (state == MARIO_STATE_FLY_DROP)
+    {
+        StopFlying();
+    }
     else
     {
         CMario::SetState(state);
@@ -206,7 +270,16 @@ void CRaccoonMario::OnCollisionWith(LPCOLLISIONEVENT e)
     if (e->ny != 0 && e->obj->IsBlocking())
     {
         vy = 0;
-        if (e->ny < 0) isOnPlatform = true;
+        if (e->ny < 0)
+        {
+            isOnPlatform = true;
+            if (isFlying || state == MARIO_STATE_FLY_DROP)
+            {
+                isFlying = false;
+                canFlap = false;
+                SetState(MARIO_STATE_IDLE);
+            }
+        }
     }
     else if (e->nx != 0 && e->obj->IsBlocking())
     {
@@ -232,7 +305,7 @@ void CRaccoonMario::OnCollisionWith(LPCOLLISIONEVENT e)
     else if (dynamic_cast<Piranha*>(e->obj))
         OnCollisionWithPiranha(e);
     else if (dynamic_cast<PButton*>(e->obj))
-        OnCollisionWithPButton(e); 
+        OnCollisionWithPButton(e);
     else if (dynamic_cast<StaticCoin*>(e->obj))
         OnCollisionWithStaticCoin(e);
     else if (dynamic_cast<CMushroom*>(e->obj))
